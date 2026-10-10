@@ -289,3 +289,22 @@ nav.tabs button.on{color:var(--ink);background:var(--mint);border-color:var(--in
 .branch .bn{font-size:13.5px;font-weight:700}
 .branch .ba{font-size:12.5px;color:var(--t2)}
 .branch .cp{flex:0 0 auto;font-family:var(--px);font-size:11px;border:1.5px solid var(--ink);background:var(--paper);padding:2px 6px;white-space:nowrap}
+
+/* 영어·메뉴 표시 */
+.enn{font-size:12.5px;color:var(--t2);margin-top:1px;font-weight:600;letter-spacing:0}
+.men{font-size:12.5px;color:var(--ink);font-weight:600;letter-spacing:0;margin-top:1px}
+.menu .ko{margin-top:1px}
+.mp{font-family:var(--px);font-size:11px;background:var(--yellow);border:1.5px solid var(--ink);padding:0 4px;margin-left:4px;vertical-align:2px}
+.mtags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.mtags span{font-family:var(--px);font-size:10.5px;padding:0 5px;border:1.5px solid var(--ink);line-height:1.5}
+.mt-s{background:var(--pink)} .mt-k{background:var(--mint)} .mt-r{background:var(--sky)} .mt-x{background:var(--yellow)} .mt-c{background:var(--paper)}
+.bd.shrimp{background:var(--pink)}
+.branch .bloc{font-size:14px;font-weight:800}
+
+/* 지명 읽기 · 지도 확대 */
+.gl{font-family:var(--body);font-size:.88em;color:var(--t2);font-weight:500;margin-left:1px}
+.mapwrap svg{touch-action:none;cursor:grab}
+.mzoom{position:absolute;right:8px;bottom:8px;display:flex;flex-direction:column;gap:6px}
+.mzoom button{min-width:36px;height:36px;padding:0 6px;background:var(--paper);border:2px solid var(--ink);box-shadow:2px 2px 0 var(--ink);font-family:var(--px);font-size:18px;line-height:1}
+.mzoom button.rs{font-size:11px}
+.mzoom button:active{transform:translate(2px,2px);box-shadow:none}
