@@ -109,6 +109,7 @@ const PY = {
   '广州正佳广场万豪酒店':'Guǎngzhōu Zhèngjiā Guǎngchǎng Wànháo Jiǔdiàn','广州白云国际机场':'Guǎngzhōu Báiyún Guójì Jīchǎng',
   '广州白云越秀万豪酒店':'Guǎngzhōu Báiyún Yuèxiù Wànháo Jiǔdiàn','白云区 云城中二路6号':'Báiyún Qū Yúnchéng Zhōng Èr Lù 6 Hào','白云越秀万豪酒店':'Báiyún Yuèxiù Wànháo Jiǔdiàn',
   '天河区 天河路228号':'Tiānhé Qū Tiānhé Lù 228 Hào','天河路228号':'Tiānhé Lù 228 Hào','冼村路2号 首府大厦 5层':'Xiǎncūn Lù 2 Hào Shǒufǔ Dàshà 5 Céng',
+  '宏图府':'Hóngtú Fǔ','白天鹅宾馆 宏图府':'Báitiān\'é Bīnguǎn Hóngtú Fǔ','羊城鲜虾饺':'Yángchéng Xiānxiā Jiǎo','天鹅酥':'Tiān\'é Sū',
   '陶陶居':'Táotáojū','费大厨辣椒炒肉':'Fèi Dàchú Làjiāo Chǎoròu','炳胜公馆':'Bǐngshèng Gōngguǎn','袁记云饺':'Yuánjì Yúnjiǎo',
   '银记肠粉':'Yínjì Chángfěn','御宝轩':'Yùbǎo Xuān','江':'Jiāng','泰安门':'Tài\'ān Mén','丽轩':'Lì Xuān','广御轩':'Guǎngyù Xuān','愉粤轩':'Yúyuè Xuān',
   '喜茶':'Xǐchá','霸王茶姬':'Bàwáng Chájī','来回咖啡':'Láihuí Kāfēi','阿嬷手作':'Āmā Shǒuzuò','南信牛奶甜品专家':'Nánxìn Niúnǎi Tiánpǐn Zhuānjiā',
@@ -148,6 +149,9 @@ const P = [
    menu:[['鲜虾蟹籽云吞','새우 게알 완탕'],['玉米鲜肉饺','옥수수 고기만두'],['荠菜鲜肉饺','냉이 고기만두'],['冬菇马蹄云吞','표고 물밤 완탕']]},
   {id:'yinji',cat:'food',area:'liwan',ko:'인지 창펀',zh:'银记肠粉',gaode:'银记肠粉 上下九',tags:['추천'],price:[20,40],
    note:'上下九 근처 오래된 창펀집. 리완 산책하다 점심으로',menu:[['牛肉肠粉','소고기 창펀'],['鲜虾肠粉','새우 창펀']]},
+  {id:'hongtufu',cat:'food',area:'liwan',ko:'홍투푸 (화이트스완 호텔)',zh:'宏图府',gaode:'白天鹅宾馆 宏图府',tags:[],price:[150,250],
+   note:'화이트스완 호텔(白天鹅宾馆) 2층 딤섬집. 08:00~14:30 · 강 전망 · 투숙객 우선 예약. 미슐랭 1스타였던 곳(2026 여부는 확인 필요). 가격 대략',
+   menu:[['羊城鲜虾饺','새우 하가우 (대표)'],['天鹅酥','백조 모양 페이스트리 (전복·차슈 소)']]},
   {id:'imperial',cat:'food',area:'etc',ko:'임페리얼 트레저',zh:'御宝轩',tags:[],mich:'2스타',price:[500,800],note:'위치는 고덕에서 확인'},
   {id:'jiang',cat:'food',area:'tianhe',ko:'장 바이 셰프 페이',zh:'江',gaode:'江 文华东方',tags:[],mich:'2스타',price:[800,1500],
    note:'太古汇 옆 만다린 오리엔탈 호텔 안(확인 필요)'},
@@ -210,6 +214,28 @@ const P = [
   {id:'hema',cat:'mart',area:'any',ko:'허마',zh:'盒马鲜生',tags:[],price:null,note:'지점·영업 여부 고덕에서 확인'}
 ];
 
+/* 지점·주소 (체인은 가까운 지점). 확인 안 된 건 그렇게 적어 둠 */
+const BR = {
+  hongtufu:['白天鹅宾馆 2층','荔湾区 沙面南街1号 白天鹅宾馆2楼'],
+  taotaoju:['正佳广场店','天河路228号 正佳广场'], feidachu:['正佳广场店','天河路228号 正佳广场'],
+  bingsheng:['단독 매장 · 珠江新城',''], yuanji:['체인 · 가까운 지점','숙소 근처(白云文化广场)나 正佳 근처에서 고덕 검색'],
+  yinji:['上下九 지점 (확인 필요)','荔湾区 上下九 일대'],
+  imperial:['위치 확인 필요',''], taian:['위치 확인 필요',''], lingnan:['위치 확인 필요',''], xinji:['위치 확인 필요',''],
+  jiang:['广州文华东方酒店 안','天河路389号 (확인 필요)'], laiheen:['广州富力丽思卡尔顿酒店 안','珠江新城 兴安路3号 (확인 필요)'], yuyue:['广州花园酒店 안','环市东路368号 (확인 필요)'],
+  heytea:['체인 · 가까운 지점','正佳广场·天环·太古汇 쪽에 많음 (고덕 거리순)'], chagee:['체인 · 가까운 지점','正佳广场·天环·太古汇 쪽에 많음 (고덕 거리순)'],
+  laihui:['六运小区점','天河区 六运小区'], jpg:['六运小区점','天河区 六运小区'],
+  ama:['太古汇店','天河路383号 太古汇 (층은 현지 확인)'], nanxin:['第十甫路 본점 (확인 필요)','荔湾区 第十甫路'],
+  shamian:['','荔湾区 沙面'], yongqing:['','荔湾区 恩宁路'], sxj:['','荔湾区 上下九路'], chenjiaci:['','中山七路 恩龙里34号'],
+  tower:['','海珠区 阅江西路222号'], huacheng:['','珠江新城 중심 광장'],
+  cruise:['타는 곳: 广州塔码头·天字码头 등','현지에서 확인'], aquarium:['正佳广场 안','天河路228号'], massage:['가까운 곳 (고덕 평점순)',''],
+  grandview:['','天河路228号'], parc:['','天河路218号'], teemall:['','天河路208号'], taikoo:['','天河路383号'], k11:['','珠江东路6号 周大福金融中心'],
+  miniso:['正佳广场점','天河路228号 正佳广场'],
+  dongshankou:['','越秀区 东山口 (新河浦·庙前西街 일대)'], badmarket:['东山口 일대','정확한 위치는 고덕'], labelhood:['东山口 일대','정확한 위치는 고덕'],
+  wassup:['东山口 일대','정확한 위치는 고덕'], side:['东山口 일대','정확한 위치는 고덕'], monmon:['东山口 일대','정확한 위치는 고덕'], liuyun:['','天河区 六运小区'],
+  ole:['太古汇점','天河路383号 太古汇'], hema:['체인 · 가까운 지점','고덕 검색']
+};
+Object.keys(BR).forEach(id=>{ const p = P.find(x=>x.id===id); if(p){ if(BR[id][0]) p.br = BR[id][0]; if(BR[id][1]) p.baddr = BR[id][1]; } });
+
 const COURSES = [
   {t:'빈티지 쇼핑 하루',why:'아메리칸 빈티지 취향. 가게들이 오후에 열어서 오전엔 얌차',ids:['taotaoju','dongshankou','badmarket','wassup','monmon','labelhood'],warn:'월요일엔 쉬는 가게 많음'},
   {t:'옛 광저우 반나절',why:'지하철 1호선 한 줄로 이어지는 동선',ids:['shamian','yinji','yongqing','nanxin','chenjiaci']},
@@ -259,13 +285,14 @@ function seed(){
         it('13:00','hotel',{memo:'짐 찾기'})
       ]}
     ],
-    custom:[], fav:{}, visited:{}, rate:190, day:0
+    custom:[], fav:{}, visited:{hongtufu:true}, _m1:1, rate:190, day:0
   };
 }
 let S;
 try{ S = JSON.parse(localStorage.getItem(KEY)) }catch(e){}
 if(!S || !S.days) S = seed();
 if(!S.visited) S.visited = {};
+if(!S._m1){ S.visited.hongtufu = true; S._m1 = 1; try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} }
 
 /* ───────── 도우미 ───────── */
@@ -385,7 +412,7 @@ const ART = {
   bed:['............','K...........','K.WWW.......','KKWWWKKKKKKK','KLLLLLLLLLLK','KKKKKKKKKKKK','K..........K'],
   plane:['.....KK.....','.....KK.....','....KSSK....','KKKKSSSSKKKK','.KKSSSSSSKK.','.....SS.....','....KSSK....','....KKKK....']
 };
-const PLACE_ART = {taotaoju:'dimsum',feidachu:'chili',bingsheng:'goose',yuanji:'bowl',yinji:'roll',heytea:'tea',chagee:'tea',ama:'ice',laihui:'coffee',jpg:'coffee',nanxin:'pudding',
+const PLACE_ART = {hongtufu:'dimsum',taotaoju:'dimsum',feidachu:'chili',bingsheng:'goose',yuanji:'bowl',yinji:'roll',heytea:'tea',chagee:'tea',ama:'ice',laihui:'coffee',jpg:'coffee',nanxin:'pudding',
   shamian:'house',yongqing:'gate',sxj:'gate',chenjiaci:'gate',tower:'tower',huacheng:'tower',cruise:'boat',aquarium:'fish',massage:'foot',miniso:'shop',hotel:'bed',airport:'plane',ole:'cart',hema:'cart'};
 const CAT_ART = {food:'bowl',cafe:'coffee',dessert:'pudding',sight:'house',fun:'boat',mall:'bag',vintage:'shirt',mart:'cart',base:'bed'};
 /* 내 사진은 IndexedDB에 (localStorage는 같은 주소의 다른 앱들과 5MB를 나눠 써서 쓰지 않음) */
@@ -468,7 +495,7 @@ const LL = {
   bingsheng:[113.3362,23.1262], k11:[113.3275,23.1188], huacheng:[113.3250,23.1170], laiheen:[113.3302,23.1176], tower:[113.3245,23.1065], cruise:[113.3215,23.1128],
   dongshankou:[113.2962,23.1238], badmarket:[113.2952,23.1248], labelhood:[113.2978,23.1228], wassup:[113.2946,23.1230], side:[113.2970,23.1252], monmon:[113.2984,23.1242],
   yuyue:[113.2850,23.1430],
-  shamian:[113.2445,23.1082], yongqing:[113.2440,23.1215], sxj:[113.2512,23.1190], yinji:[113.2497,23.1196], nanxin:[113.2527,23.1197], chenjiaci:[113.2530,23.1265]
+  shamian:[113.2445,23.1082], hongtufu:[113.2438,23.1068], yongqing:[113.2440,23.1215], sxj:[113.2512,23.1190], yinji:[113.2497,23.1196], nanxin:[113.2527,23.1197], chenjiaci:[113.2530,23.1265]
 };
 const CAT_C = {food:'#F6B8A0',cafe:'#E3CBA8',dessert:'#F7C6D9',sight:'#B0DBF0',fun:'#CDBDF2',mall:'#FFF6B8',vintage:'#A5E6BA',mart:'#D6E9A6',base:'#0B0A05'};
 const CAT_CH = {food:'맛',cafe:'카',dessert:'디',sight:'볼',fun:'놀',mall:'몰',vintage:'옷',mart:'마',base:'숙'};
@@ -480,7 +507,36 @@ const RIVER_S = [[113.244,23.104],[113.247,23.095],[113.249,23.085]];
 const LINE1 = [['黄沙',113.2445,23.1145],['长寿路',113.2505,23.1215],['陈家祠',113.2555,23.1270],['西门口',113.2620,23.1290],['公园前',113.2660,23.1270],['农讲所',113.2775,23.1270],['烈士陵园',113.2860,23.1275],['东山口',113.2960,23.1222],['杨箕',113.3110,23.1245],['体育西路',113.3215,23.1340],['体育中心',113.3278,23.1362]];
 const LINE2 = [['公园前',113.2660,23.1270],['纪念堂',113.2640,23.1345],['越秀公园',113.2635,23.1410],['广州火车站',113.2580,23.1495],['三元里',113.2620,23.1585],['飞翔公园',113.2635,23.1670],['白云公园',113.2645,23.1735],['白云文化广场',113.2655,23.1800]];
 const MOUNT = [[113.283,23.193],[113.300,23.193],[113.313,23.181],[113.309,23.165],[113.297,23.157],[113.286,23.164],[113.281,23.178]];
-const STA_LB = {'广州火车站':1,'白云文化广场':1,'黄沙':1,'长寿路':1,'陈家祠':1,'公园前':1,'东山口':1,'杨箕':1,'体育西路':1,'体育中心':1};
+const LINE3 = [['广州东站',113.3225,23.1505],['林和西',113.3225,23.1435],['体育西路',113.3215,23.1340],['珠江新城',113.3215,23.1195],['广州塔',113.3245,23.1065]];
+const LINE5 = [['广州火车站',113.2580,23.1495],['小北',113.2745,23.1395],['淘金',113.2840,23.1400],['区庄',113.2920,23.1390],['动物园',113.3040,23.1385],['杨箕',113.3110,23.1245],['五羊邨',113.3125,23.1180],['珠江新城',113.3215,23.1195],['猎德',113.3330,23.1170]];
+const METRO = [
+  {n:'1호선',c:'#F2C94C',st:LINE1,lb:[113.2660,23.1305],dx:6,dy:-6,an:'start'},
+  {n:'2호선',c:'#5B8FD6',st:LINE2,lb:[113.2560,23.1640],dx:-6,dy:3,an:'end'},
+  {n:'3호선',c:'#F0A04B',st:LINE3,lb:[113.3255,23.1475],dx:6,dy:3,an:'start'},
+  {n:'5호선',c:'#E06B6B',st:LINE5,lb:[113.2880,23.1425],dx:0,dy:12,an:'middle'}
+];
+const ROADS = [
+  {n:'天河路',pts:[[113.309,23.1320],[113.322,23.1328],[113.335,23.1340],[113.348,23.1350]],at:[113.3405,23.1346]},
+  {n:'天河北路',pts:[[113.316,23.1450],[113.332,23.1455],[113.348,23.1460]],at:[113.3405,23.1458]},
+  {n:'体育西路',pts:[[113.3195,23.1250],[113.3195,23.1440]],at:[113.3195,23.1285],v:1},
+  {n:'广州大道',pts:[[113.3130,23.1080],[113.3150,23.1200],[113.3160,23.1350],[113.3180,23.1620]],at:[113.3168,23.1560],v:1},
+  {n:'黄埔大道',pts:[[113.3160,23.1265],[113.3300,23.1257],[113.3500,23.1252]],at:[113.3430,23.1255]},
+  {n:'花城大道',pts:[[113.3160,23.1215],[113.3500,23.1212]],at:[113.3430,23.1213]},
+  {n:'环市东路',pts:[[113.2600,23.1440],[113.2850,23.1450],[113.3000,23.1430],[113.3160,23.1440]],at:[113.2920,23.1443]},
+  {n:'东风路',pts:[[113.2450,23.1335],[113.2750,23.1320],[113.3000,23.1315],[113.3150,23.1305]],at:[113.2880,23.1318]},
+  {n:'中山路',pts:[[113.2400,23.1280],[113.2750,23.1258],[113.3000,23.1238],[113.3110,23.1245]],at:[113.2830,23.1252]},
+  {n:'白云大道',pts:[[113.2705,23.1500],[113.2720,23.1700],[113.2735,23.1930]],at:[113.2722,23.1640],v:1}
+];
+const GREENS = [
+  [[113.2610,23.1375],[113.2730,23.1370],[113.2750,23.1430],[113.2650,23.1455],[113.2600,23.1425]],
+  [[113.3225,23.1358],[113.3300,23.1362],[113.3300,23.1428],[113.3225,23.1428]]
+];
+const ISLANDS = [
+  [[113.2925,23.1152],[113.3000,23.1160],[113.3120,23.1142],[113.3110,23.1122],[113.2980,23.1130]],
+  [[113.3195,23.1124],[113.3242,23.1126],[113.3240,23.1104],[113.3197,23.1103]]
+];
+const LANDMARKS = [['웨슈 공원',113.2670,23.1410],['톈허 체육센터',113.3262,23.1395],['광저우동역',113.3225,23.1528],['얼사섬',113.3020,23.1142],['하이신사',113.3218,23.1093],['베이징루 보행가',113.2690,23.1228],['바이윈 국제회의센터',113.2760,23.1830]];
+const STA_LB = {'珠江新城':1,'广州塔':1,'广州东站':1,'五羊邨':1,'区庄':1,'猎德':1,'小北':1,'广州火车站':1,'白云文化广场':1,'黄沙':1,'长寿路':1,'陈家祠':1,'公园前':1,'东山口':1,'杨箕':1,'体育西路':1,'体育中心':1};
 const AREA_LB = [['리완',113.253,23.140],['둥산커우',113.297,23.134],['톈허',113.336,23.146],['주장신청',113.338,23.123],['하이주',113.290,23.099],['바이윈산',113.297,23.176]];
 const ZOOMS = {all:{t:'전체'}, baiyun:{t:'숙소 주변',b:[113.247,23.160,113.292,23.192]}, tianhe:{t:'톈허·주장신청',b:[113.306,23.103,113.346,23.140]}, dongshan:{t:'둥산커우',b:[113.288,23.115,113.306,23.131]}, liwan:{t:'리완',b:[113.232,23.102,113.266,23.134]}};
 let mapDay = -1, mapZoom = 'all', mapClusters = [], sheetPlace = null;
@@ -528,39 +584,42 @@ function renderMap(){
   g += '<rect x="-400" y="-400" width="1800" height="1400" fill="#FFFCF7"/>';
   let grid=''; for(let i=-400;i<=1400;i+=40){ grid += 'M'+i+' -400V1400M-400 '+i+'H1400'; }
   g += '<path d="'+grid+'" stroke="#EFE8D4" stroke-width="'+(1*u)+'" fill="none"/>';
+  const detail = vb[2] < 600;
+  const halo = (x,y,txt,size,fill,anchor,extra) => '<text x="'+x+'" y="'+y+'" font-family="Galmuri11,sans-serif" font-size="'+(size*u)+'" fill="'+(fill||'#3a3528')+'" text-anchor="'+(anchor||'middle')+'" stroke="#FFFCF7" stroke-width="'+(3*u)+'" paint-order="stroke" stroke-linejoin="round"'+(extra||'')+'>'+txt+'</text>';
+  // 공원·녹지
+  GREENS.concat([MOUNT]).forEach(gr=>{ g += '<polygon points="'+polyPts(gr)+'" fill="#D6E9A6" stroke="#0B0A05" stroke-width="'+(1.5*u)+'" stroke-linejoin="round"/>'; });
+  // 큰길 (흰 길 + 잉크 테두리)
+  ROADS.forEach(r=>{ g += '<polyline points="'+polyPts(r.pts)+'" fill="none" stroke="#0B0A05" stroke-width="'+(6*u)+'" stroke-linejoin="round" stroke-linecap="round" stroke-opacity=".55"/>'; });
+  ROADS.forEach(r=>{ g += '<polyline points="'+polyPts(r.pts)+'" fill="none" stroke="#FFFCF7" stroke-width="'+(4*u)+'" stroke-linejoin="round" stroke-linecap="round"/>'; });
   // 강
   g += '<polyline points="'+polyPts(RIVER)+'" fill="none" stroke="#0B0A05" stroke-width="'+(19*u)+'" stroke-linejoin="round" stroke-linecap="round"/>';
   g += '<polyline points="'+polyPts(RIVER_S)+'" fill="none" stroke="#0B0A05" stroke-width="'+(15*u)+'" stroke-linejoin="round" stroke-linecap="round"/>';
   g += '<polyline points="'+polyPts(RIVER)+'" fill="none" stroke="#B0DBF0" stroke-width="'+(14*u)+'" stroke-linejoin="round" stroke-linecap="round"/>';
   g += '<polyline points="'+polyPts(RIVER_S)+'" fill="none" stroke="#B0DBF0" stroke-width="'+(10*u)+'" stroke-linejoin="round" stroke-linecap="round"/>';
-  const rl = prj([113.306,23.1122]);
+  ISLANDS.forEach(is=>{ g += '<polygon points="'+polyPts(is)+'" fill="#D6E9A6" stroke="#0B0A05" stroke-width="'+(1.2*u)+'" stroke-linejoin="round"/>'; });
+  const rl = prj([113.283,23.1155]);
   g += '<text x="'+rl[0]+'" y="'+(rl[1]+4*u)+'" font-family="Galmuri11,sans-serif" font-size="'+(10*u)+'" fill="#0B0A05" text-anchor="middle">주강 珠江</text>';
   // 동네 이름
   AREA_LB.forEach(a=>{ const p=prj([a[1],a[2]]); g += '<text x="'+p[0]+'" y="'+p[1]+'" font-family="Galmuri11,sans-serif" font-size="'+(15*u)+'" fill="#6b6555" fill-opacity=".55" text-anchor="middle">'+a[0]+'</text>'; });
-  // 바이윈산
-  g += '<polygon points="'+polyPts(MOUNT)+'" fill="#D6E9A6" stroke="#0B0A05" stroke-width="'+(1.5*u)+'" stroke-linejoin="round"/>';
-  // 지하철 2호선 (숙소 ↔ 公园前)
-  const l2 = LINE2.map(s=>[s[1],s[2]]);
-  g += '<polyline points="'+polyPts(l2)+'" fill="none" stroke="#0B0A05" stroke-width="'+(7*u)+'" stroke-linejoin="round"/>';
-  g += '<polyline points="'+polyPts(l2)+'" fill="none" stroke="#5B8FD6" stroke-width="'+(4*u)+'" stroke-linejoin="round"/>';
-  LINE2.slice(1).forEach(s=>{
+  // 길 이름 (확대했을 때)
+  if(detail) ROADS.forEach(r=>{ const p = prj(r.at);
+    g += '<text x="'+p[0]+'" y="'+(p[1]+3*u)+'" font-family="PingFang SC,sans-serif" font-size="'+(8.5*u)+'" fill="#6b6555" text-anchor="middle"'+(r.v?' transform="rotate(-90 '+p[0]+' '+(p[1]+3*u)+')"':'')+' stroke="#FFFCF7" stroke-width="'+(2.5*u)+'" paint-order="stroke">'+r.n+'</text>'; });
+  // 지하철
+  METRO.forEach(m=>{ const l = m.st.map(s=>[s[1],s[2]]);
+    g += '<polyline points="'+polyPts(l)+'" fill="none" stroke="#0B0A05" stroke-width="'+(7*u)+'" stroke-linejoin="round"/>';
+    g += '<polyline points="'+polyPts(l)+'" fill="none" stroke="'+m.c+'" stroke-width="'+(4*u)+'" stroke-linejoin="round"/>'; });
+  const seen = {};
+  METRO.forEach(m=>{ m.st.forEach(s=>{
     const p = prj([s[1],s[2]]), r = 3.5*u;
     g += '<rect x="'+(p[0]-r)+'" y="'+(p[1]-r)+'" width="'+(2*r)+'" height="'+(2*r)+'" fill="#FFFCF7" stroke="#0B0A05" stroke-width="'+(1.5*u)+'"/>';
-    if(STA_LB[s[0]] && vb[2] < 600) g += '<text x="'+(p[0]-6*u)+'" y="'+(p[1]+3*u)+'" font-family="PingFang SC,sans-serif" font-size="'+(9.5*u)+'" fill="#3a3528" text-anchor="end">'+s[0]+'</text>';
-  });
-  const l2p = prj([113.2560,23.1640]);
-  g += '<text x="'+l2p[0]+'" y="'+l2p[1]+'" font-family="Galmuri11,sans-serif" font-size="'+(9*u)+'" fill="#3a3528" text-anchor="end">지하철 2호선</text>';
-  // 지하철 1호선
-  const l1 = LINE1.map(s=>[s[1],s[2]]);
-  g += '<polyline points="'+polyPts(l1)+'" fill="none" stroke="#0B0A05" stroke-width="'+(7*u)+'" stroke-linejoin="round"/>';
-  g += '<polyline points="'+polyPts(l1)+'" fill="none" stroke="#F2C94C" stroke-width="'+(4*u)+'" stroke-linejoin="round"/>';
-  LINE1.forEach(s=>{
-    const p = prj([s[1],s[2]]), r = 3.5*u;
-    g += '<rect x="'+(p[0]-r)+'" y="'+(p[1]-r)+'" width="'+(2*r)+'" height="'+(2*r)+'" fill="#FFFCF7" stroke="#0B0A05" stroke-width="'+(1.5*u)+'"/>';
-    if(STA_LB[s[0]] && vb[2] < 600) g += '<text x="'+(p[0]+6*u)+'" y="'+(p[1]-6*u)+'" font-family="PingFang SC,sans-serif" font-size="'+(9.5*u)+'" fill="#3a3528">'+s[0]+'</text>';
-  });
-  const lp = prj([113.2660,23.1305]);
-  g += '<text x="'+lp[0]+'" y="'+lp[1]+'" font-family="Galmuri11,sans-serif" font-size="'+(9*u)+'" fill="#3a3528" text-anchor="middle">지하철 1호선</text>';
+    if(STA_LB[s[0]] && detail && !seen[s[0]]){ seen[s[0]] = 1;
+      g += '<text x="'+(p[0]+m.dx*u)+'" y="'+(p[1]+m.dy*u)+'" font-family="PingFang SC,sans-serif" font-size="'+(9.5*u)+'" fill="#3a3528" text-anchor="'+m.an+'" stroke="#FFFCF7" stroke-width="'+(2.5*u)+'" paint-order="stroke">'+s[0]+'</text>'; }
+  }); });
+  METRO.forEach(m=>{ const p = prj(m.lb), w = 30*u, h = 13*u;
+    g += '<rect x="'+(p[0]-w/2)+'" y="'+(p[1]-h+3*u)+'" width="'+w+'" height="'+h+'" fill="'+m.c+'" stroke="#0B0A05" stroke-width="'+(1.2*u)+'"/>'
+      + '<text x="'+p[0]+'" y="'+p[1]+'" font-family="Galmuri11,sans-serif" font-size="'+(9*u)+'" fill="#0B0A05" text-anchor="middle">'+m.n+'</text>'; });
+  // 랜드마크 이름
+  if(detail) LANDMARKS.forEach(l=>{ const p = prj([l[1],l[2]]); g += halo(p[0], p[1], l[0], 9, '#3a3528'); });
   // 공항 방향
   if(vb[1] < 40){ const ap = prj([113.268,23.1915]); g += '<text x="'+ap[0]+'" y="'+Math.max(ap[1], vb[1]+14*u)+'" font-family="Galmuri11,sans-serif" font-size="'+(10*u)+'" fill="#3a3528" text-anchor="middle">▲ 바이윈 공항 (북쪽 약 20km)</text>'; }
 
@@ -619,7 +678,7 @@ function renderMap(){
 
   // 아래 설명
   if(mapDay>=0){
-    $('#mapLegend').innerHTML = '<span>번호 = '+(mapDay+1)+'일차 순서</span><span>점선 = 이동 동선</span><span><i style="background:#0B0A05"></i>숙소</span>';
+    $('#mapLegend').innerHTML = METRO.map(m=>'<span><i style="background:'+m.c+'"></i>'+m.n+'</span>').join('')+'<span>번호 = '+(mapDay+1)+'일차 순서</span><span>점선 = 이동 동선</span><span><i style="background:#0B0A05"></i>숙소</span>';
     const d = S.days[mapDay];
     $('#mapBelow').innerHTML = '<div class="sec">'+(mapDay+1)+'일차 순서</div><div class="list maplist">'
       + (d.items.length ? d.items.map((x,k)=>{
@@ -629,7 +688,7 @@ function renderMap(){
         }).join('') : '<div class="row">아직 일정이 없어요</div>')
       + '</div>';
   } else {
-    $('#mapLegend').innerHTML = Object.keys(CATS).filter(c=>c!=='base').map(c=>'<span><i style="background:'+CAT_C[c]+'"></i>'+CAT_CH[c]+' '+CATS[c]+'</span>').join('')
+    $('#mapLegend').innerHTML = METRO.map(m=>'<span><i style="background:'+m.c+'"></i>'+m.n+'</span>').join('')+Object.keys(CATS).filter(c=>c!=='base').map(c=>'<span><i style="background:'+CAT_C[c]+'"></i>'+CAT_CH[c]+' '+CATS[c]+'</span>').join('')
       + '<span><i style="background:#FFF6B8"></i>여러 곳 겹침</span><span><i style="background:#FFFCF7"></i>가봄 = 가본 곳</span>';
     const off = allPlaces().filter(p=>!LL[p.id] && (mapDay!==-2 || S.fav[p.id]) && (mapDay!==-3 || S.visited[p.id]));
     $('#mapBelow').innerHTML = '<p class="cnt" style="padding-top:10px">그림 지도라 위치는 대략이에요. 정확한 길은 고덕지도로 찾아 주세요</p>'
@@ -724,6 +783,7 @@ function renderDays(){
       h += '<button class="it" onclick="openItem('+k+')"><div class="t'+(x.time?'':' none')+'">'+(esc(x.time)||'--:--')+'</div><div style="min-width:0">'
         + '<div class="ti">'+esc(itemName(x))+'</div>'
         + (zh && zh!==itemName(x) ? '<div class="zhl zh">'+esc(zh)+'</div>'+pyLine(zh, x.zh?null:p) : '')
+        + (p && p.br ? '<div class="zhl zh">'+esc(p.br)+'</div>' : '')
         + (x.memo ? '<div class="memo">'+esc(x.memo)+'</div>' : '')
         + (metas.length ? '<div class="meta">'+metas.join('')+'</div>' : '')
         + '</div>'+(p ? thumb(p,50) : '<span></span>')+'</button>';
@@ -871,7 +931,7 @@ function renderPick(){
   const list = allPlaces().filter(p=>(pickCat==='all'||p.cat===pickCat) && (!q || (p.ko+p.zh+(p.note||'')).toLowerCase().includes(q)));
   $('#pList').innerHTML = list.map(p=>{
     const u = usedIn(p.id);
-    return '<button onclick="addToDay(\''+p.id+'\','+S.day+',true)"><div><div style="font-weight:600">'+esc(p.ko)+'</div><div class="a"><span class="zh">'+esc(p.zh)+'</span> · '+AREAS[p.area].short+'</div></div>'
+    return '<button onclick="addToDay(\''+p.id+'\','+S.day+',true)"><div><div style="font-weight:600">'+esc(p.ko)+'</div><div class="a"><span class="zh">'+esc(p.zh)+'</span> · '+AREAS[p.area].short+(p.br?' · '+esc(p.br):'')+'</div></div>'
       +(u.length?'<span class="used">'+u.join('·')+'일차</span>':'')+'</button>';
   }).join('') || '<div class="empty-day">검색 결과가 없어요</div>';
 }
@@ -904,13 +964,21 @@ function placeCard(p){
     + '<button class="thbtn" onclick="openPhoto(\''+p.id+'\')" aria-label="'+esc(p.ko)+' 사진 보기">'+thumb(p,76)+'</button></div>'
     + '<div class="badges">'+badges.join('')+'</div>'
     + (pr?'<div class="price">'+pr+'</div>':'')
-    + (p.addr?'<div class="note zh">'+esc(p.addr)+'</div>'+pyLine(p.addr):'')
+    + branchLine(p)
     + (p.note?'<div class="note">'+esc(p.note)+'</div>':'')
     + (p.menu&&p.menu.length?'<div class="menu">'+p.menu.map(m=>'<button onclick="copy(\''+jsq(m[0])+'\')"><div><div class="zh">'+esc(m[0])+'</div>'+pyLine(m[0],m[2]?{py:m[2]}:null)+(m[1]?'<div class="ko">'+esc(m[1])+'</div>':'')+'</div><span class="cp">복사</span></button>').join('')+'</div>':'')
     + links(p)
     + '<div class="acts"><button onclick="copy(\''+jsq(p.gaode||p.zh)+'\')">고덕 검색어 복사</button><button class="ac" onclick="openAddTo(\''+p.id+'\')">일정에 넣기</button>'
     + '<button class="'+(S.visited[p.id]?'beenon':'')+'" onclick="toggleVisited(\''+p.id+'\')">'+(S.visited[p.id]?'가본 곳 취소':'가본 곳 표시')+'</button>'
     + (p.custom?'<button onclick="openPlaceEdit(\''+p.id+'\')">수정</button>':'')+'</div></div>';
+}
+function branchLine(p){
+  const a = p.addr || p.baddr || '';
+  if(!p.br && !a) return '';
+  const zhAddr = /[\u4e00-\u9fff]/.test(a) && !/고덕|확인|일대|근처|현지|쪽/.test(a);
+  return '<div class="branch"><span class="bl">지점</span><div style="min-width:0">'+(p.br?'<div class="bn zh">'+esc(p.br)+'</div>':'')
+    + (a?'<div class="ba zh">'+esc(a)+'</div>':'')+'</div>'
+    + (zhAddr?'<button class="cp" onclick="copy(\''+jsq(a.replace(/ \(.*\)$/,''))+'\')">주소 복사</button>':'')+'</div>';
 }
 function jsq(s){ return esc(String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")); }
 function renderPlaces(){
@@ -927,7 +995,7 @@ function renderPlaces(){
     if(cat==='all' && p.cat==='base') return false;
     if(area!=='all' && p.area!==area) return false;
     if(q){
-      const hay = (p.ko+' '+p.zh+' '+(p.note||'')+' '+(p.menu||[]).map(m=>m.join(' ')).join(' ')+' '+(p.mich?'미슐랭':'')).toLowerCase();
+      const hay = (p.ko+' '+p.zh+' '+(p.br||'')+' '+(p.baddr||p.addr||'')+' '+(p.note||'')+' '+(p.menu||[]).map(m=>m.join(' ')).join(' ')+' '+(p.mich?'미슐랭':'')).toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
@@ -960,6 +1028,8 @@ function openPlaceEdit(id){
   openSheet(id?'장소 수정':'장소 직접 추가',
     '<div class="fld"><label>이름</label><input id="eKo" value="'+esc(p.ko)+'"></div>'
    +'<div class="fld"><label>중국어 상호 (고덕 검색용)</label><input id="eZh" class="zh" value="'+esc(p.zh)+'"></div>'
+   +'<div class="two"><div class="fld"><label>지점 (선택)</label><input id="eBr" class="zh" value="'+esc(p.br||'')+'" placeholder="예: 正佳广场店"></div>'
+   +'<div class="fld"><label>주소 (선택)</label><input id="eAddr" class="zh" value="'+esc(p.baddr||'')+'"></div></div>'
    +'<div class="fld"><label>발음 (병음, 선택)</label><input id="ePy" value="'+esc(p.py||'')+'" placeholder="예: Táotáojū"></div>'
    +'<div class="two"><div class="fld"><label>종류</label><select id="eCat">'+opt(CATS,p.cat)+'</select></div>'
    +'<div class="fld"><label>지역</label><select id="eArea">'+opt(AREAS,p.area)+'</select></div></div>'
@@ -973,7 +1043,7 @@ function openPlaceEdit(id){
 function savePlace(id){
   const ko=$('#eKo').value.trim(); if(!ko){ toast('이름을 적어 주세요'); return; }
   const p1=parseInt($('#eP1').value,10), p2=parseInt($('#eP2').value,10);
-  const data = {ko, zh:$('#eZh').value.trim()||ko, py:$('#ePy').value.trim(), cat:$('#eCat').value, area:$('#eArea').value, note:$('#eNote').value.trim(),
+  const data = {ko, zh:$('#eZh').value.trim()||ko, py:$('#ePy').value.trim(), br:$('#eBr').value.trim(), baddr:$('#eAddr').value.trim(), cat:$('#eCat').value, area:$('#eArea').value, note:$('#eNote').value.trim(),
     price: isNaN(p1)&&isNaN(p2) ? null : [isNaN(p1)?p2:p1, isNaN(p2)?p1:p2],
     menu: $('#eMenu').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{ const [a,b,c]=l.split('/'); return [a.trim(), (b||'').trim(), (c||'').trim()]; }),
     tags:[], custom:true};

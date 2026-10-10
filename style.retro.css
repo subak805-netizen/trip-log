@@ -281,3 +281,11 @@ nav.tabs button.on{color:var(--ink);background:var(--mint);border-color:var(--in
 .th .stamp{position:absolute;top:3px;left:3px;font-style:normal;font-family:var(--px);font-size:9.5px;line-height:1.4;padding:0 4px;
   background:var(--mint);color:var(--ink);border:1.5px solid var(--ink);transform:rotate(-8deg)}
 .pc .acts button.beenon{background:var(--ink);color:var(--mint)}
+
+/* 지점 */
+.branch{display:flex;align-items:flex-start;gap:8px;margin-top:9px;padding:7px 9px;background:var(--paper2);border:1.5px dashed var(--ink)}
+.branch .bl{flex:0 0 auto;font-family:var(--px);font-size:11px;background:var(--sky);border:1.5px solid var(--ink);padding:0 5px;line-height:1.5}
+.branch>div{flex:1}
+.branch .bn{font-size:13.5px;font-weight:700}
+.branch .ba{font-size:12.5px;color:var(--t2)}
+.branch .cp{flex:0 0 auto;font-family:var(--px);font-size:11px;border:1.5px solid var(--ink);background:var(--paper);padding:2px 6px;white-space:nowrap}
