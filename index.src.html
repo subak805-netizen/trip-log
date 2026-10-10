@@ -1,0 +1,1033 @@
+<title>TRIP.LOG 광저우</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap">
+<style>
+__STYLE__
+</style>
+<div class="app">
+  <header class="top">
+    <div style="min-width:0">
+      <div class="en">GUANGZHOU QUEST</div>
+      <h1>광저우</h1>
+      <div class="sub" id="topSub"></div>
+    </div>
+    <div class="mascot" id="mascot"></div>
+  </header>
+
+  <!-- 일정 -->
+  <section class="page on" id="pg-plan">
+    <div class="sec">항공편</div>
+    <div class="pad"><div class="list" id="flights"></div></div>
+    <div class="sec" style="padding-top:22px">날짜별 일정</div>
+    <div class="seg" id="daySeg"></div>
+    <div id="dayView"></div>
+  </section>
+
+  <!-- 장소 -->
+  <section class="page" id="pg-place">
+    <div class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input id="q" placeholder="이름·메뉴·중국어로 검색" autocomplete="off">
+    </div>
+    <div class="chips" id="catChips"></div>
+    <div class="chips sub" id="areaChips"></div>
+    <div class="cnt" id="placeCnt"></div>
+    <div class="pl" id="placeList"></div>
+    <div class="btns"><button class="btn" onclick="openPlaceEdit()">장소 직접 추가</button></div>
+  </section>
+
+  <!-- 지도 -->
+  <section class="page" id="pg-map">
+    <div class="chips" id="mapDays"></div>
+    <div class="chips sub" id="mapZooms"></div>
+    <div class="mapwrap" id="mapWrap"></div>
+    <div class="legend" id="mapLegend"></div>
+    <div id="mapBelow"></div>
+  </section>
+
+  <!-- 추천 -->
+  <section class="page" id="pg-rec">
+    <div class="sec">취향 맞춤 코스</div>
+    <div class="pad" id="courses"></div>
+    <div class="sec">아직 일정에 안 넣은 추천</div>
+    <div class="pl" id="notUsed"></div>
+  </section>
+
+  <!-- 정보 -->
+  <section class="page" id="pg-info">
+    <div id="infoView"></div>
+  </section>
+</div>
+
+<nav class="tabs" id="tabs"></nav>
+
+<div class="dim" id="dim" onclick="closeSheet()"></div>
+<div class="sheet" id="sheet">
+  <div class="sh-h"><h3 id="shTitle"></h3><button onclick="closeSheet()">닫기</button></div>
+  <div class="sh-b" id="shBody"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ───────── 기본 데이터 ───────── */
+const AREAS = {
+  tianhe:  {ko:'톈허 (호텔 주변)', short:'톈허'},
+  dongshan:{ko:'둥산커우', short:'둥산커우'},
+  zhujiang:{ko:'주장신청', short:'주장신청'},
+  liwan:   {ko:'리완 (옛 시가지)', short:'리완'},
+  any:     {ko:'어디든 (체인)', short:'체인'},
+  etc:     {ko:'기타·위치 확인', short:'기타'},
+  airport: {ko:'공항', short:'공항'}
+};
+const CATS = {
+  food:'맛집', cafe:'카페', dessert:'디저트', sight:'볼거리', fun:'즐길거리',
+  mall:'몰', vintage:'옷·빈티지', mart:'마트', base:'숙소·공항'
+};
+// 지역 사이 이동 (대략)
+const MOVES = {
+  'dongshan|tianhe':'지하철 1호선 体育中心 ↔ 东山口 약 10분 · 택시 15분',
+  'tianhe|zhujiang':'택시 10~15분',
+  'liwan|tianhe':'지하철 1호선 体育中心 ↔ 黄沙·长寿路 약 25분 · 택시 30분',
+  'dongshan|liwan':'지하철 1호선 약 15분',
+  'dongshan|zhujiang':'택시 15분',
+  'liwan|zhujiang':'택시 30분',
+  'airport|tianhe':'택시 50~60분',
+  'airport|zhujiang':'택시 50~60분',
+  'airport|dongshan':'택시 45~55분',
+  'airport|liwan':'택시 40~50분'
+};
+
+/* 중국어 → 병음 (손으로 적음, 성조 표시) */
+const PY = {
+  '广州正佳广场万豪酒店':'Guǎngzhōu Zhèngjiā Guǎngchǎng Wànháo Jiǔdiàn','广州白云国际机场':'Guǎngzhōu Báiyún Guójì Jīchǎng',
+  '天河区 天河路228号':'Tiānhé Qū Tiānhé Lù 228 Hào','天河路228号':'Tiānhé Lù 228 Hào','冼村路2号 首府大厦 5层':'Xiǎncūn Lù 2 Hào Shǒufǔ Dàshà 5 Céng',
+  '陶陶居':'Táotáojū','费大厨辣椒炒肉':'Fèi Dàchú Làjiāo Chǎoròu','炳胜公馆':'Bǐngshèng Gōngguǎn','袁记云饺':'Yuánjì Yúnjiǎo',
+  '银记肠粉':'Yínjì Chángfěn','御宝轩':'Yùbǎo Xuān','江':'Jiāng','泰安门':'Tài\'ān Mén','丽轩':'Lì Xuān','广御轩':'Guǎngyù Xuān','愉粤轩':'Yúyuè Xuān',
+  '喜茶':'Xǐchá','霸王茶姬':'Bàwáng Chájī','来回咖啡':'Láihuí Kāfēi','阿嬷手作':'Āmā Shǒuzuò','南信牛奶甜品专家':'Nánxìn Niúnǎi Tiánpǐn Zhuānjiā',
+  '沙面':'Shāmiàn','永庆坊':'Yǒngqìng Fāng','上下九步行街':'Shàngxiàjiǔ Bùxíngjiē','陈家祠':'Chénjiā Cí','广州塔':'Guǎngzhōu Tǎ',
+  '花城广场':'Huāchéng Guǎngchǎng','珠江夜游':'Zhūjiāng Yèyóu','正佳极地海洋世界':'Zhèngjiā Jídì Hǎiyáng Shìjiè','足疗':'Zúliáo',
+  '正佳广场':'Zhèngjiā Guǎngchǎng','天环广场':'Tiānhuán Guǎngchǎng','天河城':'Tiānhé Chéng','太古汇':'Tàigǔ Huì',
+  'K11购物艺术中心':'K11 Gòuwù Yìshù Zhōngxīn','MINISO LAND 名创优品':'Míngchuàng Yōupǐn','东山口':'Dōngshānkǒu','六运小区':'Liùyùn Xiǎoqū',
+  'Ole\' 超市':'Ole\' Chāoshì','盒马鲜生':'Hémǎ Xiānshēng',
+  '陶陶居大虾饺':'Táotáojū Dà Xiājiǎo','黑鱼子香菇烧麦皇':'Hēi Yúzǐ Xiānggū Shāomài Huáng','酥皮水牛奶菠萝包':'Sūpí Shuǐniúnǎi Bōluóbāo','百年烧鹅':'Bǎinián Shāo\'é',
+  '辣椒炒肉':'Làjiāo Chǎoròu','小炒黄牛肉':'Xiǎochǎo Huángniúròu','皮蛋青椒擂茄子':'Pídàn Qīngjiāo Léi Qiézi','香芋蒸排骨':'Xiāngyù Zhēng Páigǔ',
+  '脆皮荔枝鸡':'Cuìpí Lìzhī Jī','灌汤烧鹅':'Guàntāng Shāo\'é','黑椒炒肉蟹':'Hēijiāo Chǎo Ròuxiè','芝麻糊双皮奶':'Zhīmahú Shuāngpínǎi',
+  '鲜虾蟹籽云吞':'Xiānxiā Xièzǐ Yúntūn','玉米鲜肉饺':'Yùmǐ Xiānròu Jiǎo','荠菜鲜肉饺':'Jìcài Xiānròu Jiǎo','冬菇马蹄云吞':'Dōnggū Mǎtí Yúntūn',
+  '牛肉肠粉':'Niúròu Chángfěn','鲜虾肠粉':'Xiānxiā Chángfěn',
+  '多肉葡萄':'Duōròu Pútáo','芝芝莓莓':'Zhīzhī Méiméi','三倍厚抹':'Sānbèi Hòu Mǒ','烤黑糖波波牛乳':'Kǎo Hēitáng Bōbō Niúrǔ',
+  '伯牙绝弦':'Bóyá Juéxián','桂馥兰香':'Guìfù Lánxiāng','青青糯山':'Qīngqīng Nuòshān','花田乌龙':'Huātián Wūlóng',
+  '打·米麻薯':'Dǎ Mǐ Máshǔ','龙眼桂花冰':'Lóngyǎn Guìhuā Bīng','老椰清补凉':'Lǎo Yē Qīngbǔliáng','广西六堡奶茶':'Guǎngxī Liùbǎo Nǎichá',
+  '双皮奶':'Shuāngpínǎi','姜撞奶':'Jiāngzhuàngnǎi'
+};
+const P = [
+  /* 숙소·공항 */
+  {id:'hotel',cat:'base',area:'tianhe',ko:'메리어트 호텔 톈허',zh:'广州正佳广场万豪酒店',
+   note:'天河区 天河路228号. 正佳广场과 같은 건물. 지하철 体育中心역과 연결',addr:'天河路228号'},
+  {id:'airport',cat:'base',area:'airport',ko:'바이윈 국제공항',zh:'广州白云国际机场',note:'국제선은 3시간 전 도착 권장'},
+
+  /* 맛집 */
+  {id:'taotaoju',cat:'food',area:'tianhe',ko:'타오타오쥐',zh:'陶陶居',gaode:'陶陶居 正佳广场',tags:['영상'],price:[100,150],
+   note:'正佳广场 안. 6층이라는 건 2016년 자료라 고덕에서 위치 다시 확인',
+   menu:[['陶陶居大虾饺','새우 하가우'],['黑鱼子香菇烧麦皇','표고 샤오마이'],['酥皮水牛奶菠萝包','소우유 파인애플번'],['百年烧鹅','거위구이']]},
+  {id:'feidachu',cat:'food',area:'tianhe',ko:'페이다추',zh:'费大厨辣椒炒肉',gaode:'费大厨 正佳广场',tags:['영상'],price:[70,100],
+   note:'正佳广场 지점. 매움 · 줄이 길어서 번호표부터 받아 두기',
+   menu:[['辣椒炒肉','고추 돼지고기볶음'],['小炒黄牛肉','소고기볶음'],['皮蛋青椒擂茄子','피단 가지무침'],['香芋蒸排骨','토란 갈비찜 (안 매움)']]},
+  {id:'bingsheng',cat:'food',area:'zhujiang',ko:'빙셩공관',zh:'炳胜公馆',tags:['영상'],mich:'1스타',price:[300,450],
+   addr:'冼村路2号 首府大厦 5层',note:'4명이면 1~2주 전 예약. 호텔 컨시어지에 부탁하면 편함',
+   menu:[['脆皮荔枝鸡','리치나무 훈연 닭 (하루 15마리 한정, 예약 때 요청)'],['灌汤烧鹅','거위구이'],['黑椒炒肉蟹','흑후추 게볶음'],['芝麻糊双皮奶','흑임자 우유푸딩']]},
+  {id:'yuanji',cat:'food',area:'any',ko:'원기운교',zh:'袁记云饺',tags:['영상'],price:[20,35],
+   note:'체인이라 가까운 지점 아무 데나. 고덕에서 지도를 正佳广场으로 옮기고 검색',
+   menu:[['鲜虾蟹籽云吞','새우 게알 완탕'],['玉米鲜肉饺','옥수수 고기만두'],['荠菜鲜肉饺','냉이 고기만두'],['冬菇马蹄云吞','표고 물밤 완탕']]},
+  {id:'yinji',cat:'food',area:'liwan',ko:'인지 창펀',zh:'银记肠粉',gaode:'银记肠粉 上下九',tags:['추천'],price:[20,40],
+   note:'上下九 근처 오래된 창펀집. 리완 산책하다 점심으로',menu:[['牛肉肠粉','소고기 창펀'],['鲜虾肠粉','새우 창펀']]},
+  {id:'imperial',cat:'food',area:'etc',ko:'임페리얼 트레저',zh:'御宝轩',tags:[],mich:'2스타',price:[500,800],note:'위치는 고덕에서 확인'},
+  {id:'jiang',cat:'food',area:'tianhe',ko:'장 바이 셰프 페이',zh:'江',gaode:'江 文华东方',tags:[],mich:'2스타',price:[800,1500],
+   note:'太古汇 옆 만다린 오리엔탈 호텔 안(확인 필요). 호텔에서 가까움'},
+  {id:'taian',cat:'food',area:'etc',ko:'타이안 테이블',zh:'泰安门',tags:[],mich:'2스타',price:[1500,2500],note:'코스 위주. 위치는 고덕에서 확인'},
+  {id:'laiheen',cat:'food',area:'zhujiang',ko:'라이 힌',zh:'丽轩',gaode:'丽轩 丽思卡尔顿',tags:[],mich:'1스타',price:[400,700],note:'리츠칼튼 호텔 안 광둥요리'},
+  {id:'lingnan',cat:'food',area:'etc',ko:'링난 하우스',zh:'广御轩',tags:[],mich:'1스타',price:[400,700],note:'위치는 고덕에서 확인'},
+  {id:'yuyue',cat:'food',area:'etc',ko:'위위에힌',zh:'愉粤轩',gaode:'愉粤轩 花园酒店',tags:[],mich:'1스타',price:[300,500],note:'花园酒店 안 (환시동루)'},
+  {id:'xinji',cat:'food',area:'etc',ko:'Xin Ji',zh:'Xin Ji',tags:[],mich:'1스타',price:null,note:'중국어 상호와 가격 확인 필요'},
+
+  /* 카페·차 */
+  {id:'heytea',cat:'cafe',area:'any',ko:'헤이티',zh:'喜茶',tags:['영상'],price:[15,25],
+   note:'가까운 지점은 고덕에서 거리순으로',
+   menu:[['多肉葡萄','청포도 치즈폼'],['芝芝莓莓','딸기 치즈폼'],['三倍厚抹','진한 말차'],['烤黑糖波波牛乳','흑당 버블 우유 (판매 여부 미확인)']]},
+  {id:'chagee',cat:'cafe',area:'any',ko:'차지',zh:'霸王茶姬',tags:['영상'],price:[15,22],
+   note:'가까운 지점은 고덕에서 거리순으로',
+   menu:[['伯牙绝弦','자스민 우롱 밀크티 (대표)'],['桂馥兰香','계화 우롱'],['青青糯山','찹쌀향 녹차'],['花田乌龙','꽃향 우롱']]},
+  {id:'laihui',cat:'cafe',area:'tianhe',ko:'라이후이 커피',zh:'来回咖啡',gaode:'来回咖啡 六运',tags:[],price:[30,45],note:'六运小区 골목 카페'},
+  {id:'jpg',cat:'cafe',area:'tianhe',ko:'store by .jpg',zh:'store by .jpg',gaode:'store by .jpg 六运',tags:[],price:[30,45],note:'六运小区 카페 겸 편집숍'},
+
+  /* 디저트 */
+  {id:'ama',cat:'dessert',area:'tianhe',ko:'아마수작',zh:'阿嬷手作',gaode:'阿嬷手作 太古汇',tags:['영상'],price:[20,35],
+   note:'太古汇에 지점이 있다는 자료가 있음 (층은 미확인). 대기가 길어서 오전 추천',
+   menu:[['打·米麻薯','찹쌀떡 음료'],['龙眼桂花冰','용안 계화 빙수'],['老椰清补凉','코코넛 청보량'],['广西六堡奶茶','육보차 밀크티']]},
+  {id:'nanxin',cat:'dessert',area:'liwan',ko:'난신 우유 디저트',zh:'南信牛奶甜品专家',tags:['추천'],price:[20,40],
+   note:'上下九 근처 전통 탕수이 노포',menu:[['双皮奶','우유푸딩'],['姜撞奶','생강 우유푸딩']]},
+
+  /* 볼거리 */
+  {id:'shamian',cat:'sight',area:'liwan',ko:'사몐',zh:'沙面',tags:['추천'],price:[0,0],note:'유럽식 옛 건물이 모인 섬. 지하철 1호선 黄沙역'},
+  {id:'yongqing',cat:'sight',area:'liwan',ko:'융칭팡',zh:'永庆坊',tags:['추천'],price:[0,0],note:'옛 골목을 고친 거리. 카페·소품 가게'},
+  {id:'sxj',cat:'sight',area:'liwan',ko:'상샤주 보행가',zh:'上下九步行街',tags:[],price:[0,0],note:'오래된 상점가. 먹거리 많음'},
+  {id:'chenjiaci',cat:'sight',area:'liwan',ko:'진씨서원',zh:'陈家祠',tags:['추천'],price:[10,10],note:'광둥 전통 건축 장식이 화려함. 지하철 1호선 陈家祠역. 입장료 대략'},
+  {id:'tower',cat:'sight',area:'zhujiang',ko:'캔톤타워',zh:'广州塔',tags:['추천'],price:null,note:'전망대는 유료(가격 현지 확인). 밖에서 보는 야경만으로도 충분'},
+  {id:'huacheng',cat:'sight',area:'zhujiang',ko:'화청광장',zh:'花城广场',tags:['추천'],price:[0,0],note:'캔톤타워가 정면으로 보이는 광장. 야경 산책'},
+
+  /* 즐길거리 */
+  {id:'cruise',cat:'fun',area:'zhujiang',ko:'주강 야경 유람선',zh:'珠江夜游',tags:['추천'],price:[60,150],note:'선착장 여러 곳. 4명이 같이 타기 좋음. 가격 대략'},
+  {id:'aquarium',cat:'fun',area:'tianhe',ko:'정가 아쿠아리움',zh:'正佳极地海洋世界',tags:[],price:[150,250],note:'호텔 건물 안. 비 오는 날 후보. 가격 대략'},
+  {id:'massage',cat:'fun',area:'any',ko:'발마사지',zh:'足疗',tags:['추천'],price:[100,200],note:'많이 걸은 날 저녁에. 고덕에서 평점 보고 고르기. 가격 대략'},
+
+  /* 몰 */
+  {id:'grandview',cat:'mall',area:'tianhe',ko:'정가광장',zh:'正佳广场',tags:[],price:null,note:'호텔과 같은 건물. 중저가 위주'},
+  {id:'parc',cat:'mall',area:'tianhe',ko:'톈환 파크센트럴',zh:'天环广场',tags:[],price:null,note:'야외 공원형. 正佳 바로 옆, 걸어서'},
+  {id:'teemall',cat:'mall',area:'tianhe',ko:'톈허청',zh:'天河城',tags:['추천'],price:null,note:'正佳 바로 옆. 중저가 브랜드 많아 적당한 가격대 구경용'},
+  {id:'taikoo',cat:'mall',area:'tianhe',ko:'타이쿠후이',zh:'太古汇',tags:[],price:null,note:'럭셔리 위주라 식당가·마트(Ole\')만. 걸어서 15분'},
+  {id:'k11',cat:'mall',area:'zhujiang',ko:'K11',zh:'K11购物艺术中心',tags:[],price:null,note:'디자인·라이프스타일 브랜드'},
+  {id:'miniso',cat:'mall',area:'tianhe',ko:'미니소 랜드',zh:'MINISO LAND 名创优品',gaode:'名创优品 正佳广场',tags:['영상'],price:null,note:'正佳广场 안 2층 규모 대형 매장'},
+
+  /* 옷·빈티지 */
+  {id:'dongshankou',cat:'vintage',area:'dongshan',ko:'둥산커우 빈티지 거리',zh:'东山口',tags:['추천'],price:null,closed:[1],
+   note:'아메리칸 빈티지·편집숍 밀집. 오후에 여는 가게가 많음'},
+  {id:'badmarket',cat:'vintage',area:'dongshan',ko:'Bad Market',zh:'Bad Market',gaode:'东山口 Bad Market',tags:[],price:null,closed:[1],note:'빈티지'},
+  {id:'labelhood',cat:'vintage',area:'dongshan',ko:'Labelhood',zh:'Labelhood',gaode:'东山口 Labelhood',tags:[],price:null,closed:[1],note:'디자이너 편집숍'},
+  {id:'wassup',cat:'vintage',area:'dongshan',ko:'Wassup',zh:'Wassup',gaode:'东山口 Wassup',tags:[],price:null,closed:[1],note:'빈티지'},
+  {id:'side',cat:'vintage',area:'dongshan',ko:'Side',zh:'Side',gaode:'东山口 Side',tags:[],price:null,closed:[1],note:'편집숍'},
+  {id:'monmon',cat:'vintage',area:'dongshan',ko:'Mon Mon Shop',zh:'Mon Mon Shop',gaode:'东山口 Mon Mon',tags:[],price:null,closed:[1],note:'빈티지'},
+  {id:'liuyun',cat:'vintage',area:'tianhe',ko:'류윈 골목',zh:'六运小区',tags:[],price:null,note:'호텔 근처 골목. 소규모 브랜드와 카페'},
+
+  /* 마트 */
+  {id:'ole',cat:'mart',area:'tianhe',ko:'올레 마트',zh:'Ole\' 超市',gaode:'Ole 太古汇',tags:[],price:null,note:'太古汇 안 고급 마트. 기념품 과자·차'},
+  {id:'hema',cat:'mart',area:'any',ko:'허마',zh:'盒马鲜生',tags:[],price:null,note:'지점·영업 여부 고덕에서 확인'}
+];
+
+const COURSES = [
+  {t:'빈티지 쇼핑 하루',why:'아메리칸 빈티지 취향. 가게들이 오후에 열어서 오전엔 얌차',ids:['taotaoju','dongshankou','badmarket','wassup','monmon','labelhood'],warn:'월요일엔 쉬는 가게 많음'},
+  {t:'옛 광저우 반나절',why:'지하철 1호선 한 줄로 이어지는 동선',ids:['shamian','yinji','yongqing','nanxin','chenjiaci']},
+  {t:'야경 코스',why:'주장신청에서 걸어서 이어짐',ids:['k11','huacheng','cruise']},
+  {t:'비 오는 날 몰 코스',why:'호텔 건물과 바로 옆 몰만 이동',ids:['aquarium','miniso','teemall','parc']},
+  {t:'차·디저트 투어',why:'영상에서 본 음료 가게 + 전통 탕수이',ids:['heytea','ama','chagee','nanxin']},
+  {t:'미슐랭 디너',why:'영상 리스트와 1스타가 겹치는 곳',ids:['bingsheng','huacheng']}
+];
+
+/* ───────── 저장 ───────── */
+const KEY = 'triplog_gz_v1';
+let uid = () => Math.random().toString(36).slice(2,9);
+const it = (time, placeId, extra={}) => ({id:uid(), time, placeId, title:'', zh:'', memo:'', move:'', ...extra});
+function seed(){
+  return {
+    flights:{out:{no:'',date:'',dep:'',arr:''}, back:{no:'',date:'',dep:'',arr:''}},
+    days:[
+      {id:uid(),items:[
+        it('12:00','airport',{memo:'호텔까지 택시 약 1시간'}),
+        it('13:00','yuanji',{memo:'짐 맡기고 가볍게'}),
+        it('14:30','liuyun'),
+        it('15:00','laihui'),
+        it('16:00','parc'),
+        it('16:45','grandview',{memo:'喜茶·霸王茶姬 한 잔'}),
+        it('17:15','miniso'),
+        it('18:00','feidachu',{memo:'번호표 먼저 받고 몰 구경 → 19:00쯤 식사'})
+      ]},
+      {id:uid(),items:[
+        it('10:00','taotaoju',{memo:'얌차. 오픈 시간 확인'}),
+        it('13:00','dongshankou',{memo:'Bad Market · Labelhood · Wassup · Side · Mon Mon Shop'}),
+        it('18:00','hotel',{memo:'쇼핑백 두기'}),
+        it('19:00','bingsheng',{memo:'荔枝鸡 예약 때 요청'}),
+        it('21:00','huacheng',{memo:'힘 남으면'})
+      ]},
+      {id:uid(),items:[
+        it('10:30','shamian'),
+        it('12:30','yinji'),
+        it('13:15','nanxin',{memo:'双皮奶 · 姜撞奶'}),
+        it('14:00','yongqing'),
+        it('16:00','hotel',{memo:'쉬기'}),
+        it('18:00','k11',{memo:'저녁은 K11에서'}),
+        it('20:30','cruise',{memo:'또는 花城广场 산책'})
+      ]},
+      {id:uid(),items:[
+        it('10:00','ole',{memo:'기념품 과자·차'}),
+        it('11:00','ama'),
+        it('12:00','hotel',{memo:'체크아웃 · 짐 맡기기'})
+      ]}
+    ],
+    custom:[], fav:{}, rate:190, day:0
+  };
+}
+let S;
+try{ S = JSON.parse(localStorage.getItem(KEY)) }catch(e){}
+if(!S || !S.days) S = seed();
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} }
+
+/* ───────── 도우미 ───────── */
+const $ = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const allPlaces = () => P.concat(S.custom||[]);
+const place = id => allPlaces().find(p=>p.id===id);
+const DOW = ['일','월','화','수','목','금','토'];
+
+function dayDate(i){
+  const d = S.flights.out.date;
+  if(!d) return null;
+  const t = new Date(d+'T00:00:00');
+  if(isNaN(t)) return null;
+  t.setDate(t.getDate()+i);
+  return t;
+}
+function fmtDate(t){ return (t.getMonth()+1)+'월 '+t.getDate()+'일 '+DOW[t.getDay()]; }
+function won(y){
+  const w = y*(+S.rate||190);
+  if(w < 10000) return Math.round(w/1000)+'천원';
+  return (Math.round(w/1000)/10).toString().replace(/\.0$/,'')+'만원';
+}
+function priceText(p){
+  if(!p.price) return '';
+  const [a,b] = p.price;
+  if(a===0 && b===0) return '<b>무료</b>';
+  const y = a===b ? '¥'+a : '¥'+a+'~'+b;
+  const w = a===b ? '약 '+won(a) : '약 '+won(a)+'~'+won(b);
+  return '<b>1인 '+y+'</b> <span>· '+w+' · 대략</span>';
+}
+function moveText(a,b){
+  if(!a || !b) return '';
+  const pa = place(a), pb = place(b);
+  if(!pa || !pb) return '';
+  // 공항 ↔ 체인: 체인은 호텔 근처 지점으로 본다
+  if(pa.area==='airport' && pb.area==='any') return MOVES['airport|tianhe'];
+  if(pb.area==='airport' && pa.area==='any') return MOVES['airport|tianhe'];
+  if(pa.area==='any' || pb.area==='any') return '가까운 지점 · 고덕에서 거리 확인';
+  if(pa.area==='etc' || pb.area==='etc') return '위치 확인 후 택시';
+  if(pa.area===pb.area) return '같은 동네 · 걸어서';
+  const k = [pa.area,pb.area].sort().join('|');
+  return MOVES[k] || '택시';
+}
+function usedIn(id){
+  const r=[]; S.days.forEach((d,i)=>{ if(d.items.some(x=>x.placeId===id)) r.push(i+1) }); return r;
+}
+function itemName(x){ const p = x.placeId && place(x.placeId); return x.title || (p ? p.ko : '(이름 없음)'); }
+function pyOf(zh, p){ if(p && p.py) return p.py; return PY[zh] || ''; }
+function pyLine(zh, p){ const y = pyOf(zh,p); return y ? '<div class="py">'+esc(y)+'</div>' : ''; }
+function links(p){
+  const q = p.gaode || p.zh;
+  const u = [
+    ['구글 지도','https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(q+' 广州')],
+    ['대중점평','https://www.dianping.com/search/keyword/4/0_'+encodeURIComponent(q)],
+    ['네이버 후기','https://search.naver.com/search.naver?where=view&query='+encodeURIComponent('광저우 '+p.ko)]
+  ];
+  return '<div class="links">'+u.map(([t,h])=>'<a href="'+esc(h)+'" target="_blank" rel="noopener">'+t+'<svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M4 2h6v6M10 2L3 9"/></svg></a>').join('')+'</div>';
+}
+function itemZh(x){ const p = x.placeId && place(x.placeId); return x.zh || (p ? p.zh : ''); }
+
+let toastT;
+function toast(m){ const t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('on'),1600); }
+function copy(text){
+  const done = () => toast('복사됨 · '+text);
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(done).catch(()=>fallback());
+  } else fallback();
+  function fallback(){
+    const ta=document.createElement('textarea'); ta.value=text; ta.setAttribute('readonly','');
+    ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); done(); }catch(e){ toast('복사 실패 · 길게 눌러 복사하세요'); }
+    ta.remove();
+  }
+}
+/* ───────── 픽셀 그림 ───────── */
+function pix(rows, pal, sc){
+  const h = rows.length, w = rows[0].length; let r = '';
+  rows.forEach((row,y)=>{ let x=0; while(x<w){ const c=row[x]; if(c==='.'){x++;continue;} let e=x; while(e<w&&row[e]===c) e++;
+    r += '<rect x="'+x+'" y="'+y+'" width="'+(e-x)+'" height="1" fill="'+(pal&&pal[c]||'currentColor')+'"/>'; x=e; } });
+  return '<svg class="px-i" width="'+w*sc+'" height="'+h*sc+'" viewBox="0 0 '+w+' '+h+'" shape-rendering="crispEdges" aria-hidden="true">'+r+'</svg>';
+}
+const PXI = {
+  plan:['.K....K.','KKKKKKKK','K......K','K.K.K..K','K......K','K.K.K..K','K......K','KKKKKKKK'],
+  place:['..KKKK..','.K....K.','K..KK..K','K..KK..K','.K....K.','..K..K..','...KK...','........'],
+  map:['KKKKKKKK','K.K..K.K','K.K..K.K','K.KK.K.K','K.K.KK.K','K.K..K.K','K.K..K.K','KKKKKKKK'],
+  rec:['...KK...','...KK...','KKKKKKKK','.KKKKKK.','..KKKK..','.KKKKKK.','.KK..KK.','KK....KK'],
+  info:['..KKKK..','.K....K.','K..KK..K','K......K','K..KK..K','K..KK..K','.K....K.','..KKKK..'],
+  down:['..KK...','..KK...','..KK...','KKKKKK.','.KKKK..','..KK...'],
+  star:['....K....','...KYK...','KKKKYKKKK','KYYYYYYYK','.KYYYYYK.','..KYYYK..','.KYYKYYK.','.KYK.KYK.','.KK...KK.']
+};
+
+/* ───────── 대표 그림: 내 사진 > 자유 이용 사진 > 픽셀 그림 ───────── */
+const WM = __PHOTOS__;   // 위키미디어 자유 이용 사진 (출처는 정보 탭)
+const ART_PAL = {K:'#0B0A05',W:'#FFFCF7',P:'#F7C6D9',R:'#E0533D',G:'#5DAA68',N:'#9B6A3C',T:'#D9A86C',C:'#F5E6C4',S:'#8CC8E8',Y:'#F2C94C',O:'#E58E4A',M:'#7FCF9A',L:'#C7B5EE',D:'#3a3528'};
+const ART = {
+  dimsum:['............','...KKKKKK...','..KWWPWWWK..','.KWWWWWPWWK.','.KWWWWWWWWK.','KNNNNNNNNNNK','KNTNTNTNTNNK','KNNNNNNNNNNK','.KKKKKKKKKK.'],
+  chili:['.........KG.','........KGG.','.....KKKRK..','...KKRRRRRK.','..KRRWRRRRK.','.KRRRRRRRK..','KRRRRRRKK...','KRRRRKK.....','.KKKK.......'],
+  bowl:['...W...W....','....W...W...','.KKKKKKKKKK.','KCWCCWCCWCCK','KSSSSSSSSSSK','.KSSSSSSSSK.','..KSSSSSSK..','...KKKKKK...'],
+  goose:['......KKK...','.....KOOOK..','....KOOOOOK.','...KOOOOOOK.','..KOOOOOOK..','.KWKOOOOK...','KWWK.KKKK...','.KK.........'],
+  roll:['............','...KKKKKK...','..KWWWWWWK..','..KWWWWWWK..','..KNNNNNNK..','KKKKKKKKKKKK','.KSSSSSSSSK.','..KKKKKKKK..'],
+  cloche:['.....KK.....','....KYYK....','..KKYYYYKK..','.KYYYYYYYYK.','KYYWYYYYYYYK','KYYYYYYYYYYK','KKKKKKKKKKKK','.KKKKKKKKKK.'],
+  tea:['.......K....','......K.....','..KKKKKKKK..','..KWWWWWWK..','..KTTTTTTK..','..KTTTTTTK..','...KTDTDK...','...KTTTTK...','....KKKK....'],
+  coffee:['...W..W.....','....W..W....','.KKKKKKKK...','.KWWWWWWKKK.','.KWNNNNWK.K.','.KWWWWWWKKK.','..KWWWWK....','KKKKKKKKKK..'],
+  pudding:['.....RR.....','..KKKKKKKK..','.KWWWWWWWWK.','.KCWWWWWWCK.','KKKKKKKKKKKK','.KPPPPPPPPK.','..KPPPPPPK..','...KKKKKK...'],
+  ice:['....KKKK....','...KPPWPK...','..KPPPPPPK..','..KKKKKKKK..','...KTTTTK...','....KTTK....','....KTTK....','.....KK.....'],
+  house:['....KKKK....','..KKCCCCKK..','KKCCCCCCCCKK','KKKKKKKKKKKK','KCWCWCWCWCCK','KCWCWCWCWCCK','KCWCWCWCWCCK','KKKKKKKKKKKK'],
+  tower:['.....KK.....','.....KK.....','....KSSK....','....KSSK....','.....KK.....','.....KK.....','....KSSK....','...KSSSSK...','..KSSSSSSK..','..KKKKKKKK..'],
+  gate:['.KKKKKKKKKK.','KRRRRRRRRRRK','.KKKKKKKKKK.','..KNK..KNK..','..KNK..KNK..','..KNKKKKNK..','..KNK..KNK..','KKKKKKKKKKKK'],
+  boat:['.....K......','.....KW.....','.....KWW....','.....KWWW...','.....K......','KKKKKKKKKKKK','.KRRRRRRRRK.','..KKKKKKKK..','SSSSSSSSSSSS'],
+  fish:['............','....KKKK....','..KKSSSSK.KK','.KSKSSSSSKSK','.KSSSSSSSSSK','..KKSSSSK.KK','....KKKK....'],
+  foot:['...KKK......','..KCCCK.....','..KCCCK.....','..KCCCK.....','..KCCCCKK...','..KCCCCCCK..','...KKKKKKK..'],
+  bag:['....KKKK....','...K....K...','..KKKKKKKK..','..KYYYYYYK..','..KYYYYYYK..','..KYYYYYYK..','..KYYYYYYK..','..KKKKKKKK..'],
+  shop:['KKKKKKKKKKKK','KRWRWRWRWRWK','.KKKKKKKKKK.','.KCCCCCCCCK.','.KCSSKKSSCK.','.KCSSKKSSCK.','.KCCCKKCCCK.','.KKKKKKKKKK.'],
+  shirt:['..KKK..KKK..','.KMMMKKMMMK.','KMMMMMMMMMMK','KKKMMMMMMKKK','..KMMMMMMK..','..KMMMMMMK..','..KMMMMMMK..','..KKKKKKKK..'],
+  cart:['KK..........','.K..........','.KKKKKKKKKK.','.KGWGWGWGK..','.KWGWGWGWK..','..KKKKKKKK..','..K.....K...','..KK....KK..'],
+  bed:['............','K...........','K.WWW.......','KKWWWKKKKKKK','KLLLLLLLLLLK','KKKKKKKKKKKK','K..........K'],
+  plane:['.....KK.....','.....KK.....','....KSSK....','KKKKSSSSKKKK','.KKSSSSSSKK.','.....SS.....','....KSSK....','....KKKK....']
+};
+const PLACE_ART = {taotaoju:'dimsum',feidachu:'chili',bingsheng:'goose',yuanji:'bowl',yinji:'roll',heytea:'tea',chagee:'tea',ama:'ice',laihui:'coffee',jpg:'coffee',nanxin:'pudding',
+  shamian:'house',yongqing:'gate',sxj:'gate',chenjiaci:'gate',tower:'tower',huacheng:'tower',cruise:'boat',aquarium:'fish',massage:'foot',miniso:'shop',hotel:'bed',airport:'plane',ole:'cart',hema:'cart'};
+const CAT_ART = {food:'bowl',cafe:'coffee',dessert:'pudding',sight:'house',fun:'boat',mall:'bag',vintage:'shirt',mart:'cart',base:'bed'};
+/* 내 사진은 IndexedDB에 (localStorage는 같은 주소의 다른 앱들과 5MB를 나눠 써서 쓰지 않음) */
+const PKEY = 'triplog_gz_photos';
+let PH = {};
+const PDB = { db:null,
+  open(){ return new Promise((ok,no)=>{ try{ const r = indexedDB.open('triplog_gz',1);
+    r.onupgradeneeded = () => r.result.createObjectStore('photos');
+    r.onsuccess = () => { this.db = r.result; ok(this.db); }; r.onerror = () => no(r.error); }catch(e){ no(e); } }); },
+  tx(mode){ return this.db.transaction('photos', mode).objectStore('photos'); },
+  put(id,v){ return new Promise((ok,no)=>{ const r=this.tx('readwrite').put(v,id); r.onsuccess=()=>ok(); r.onerror=()=>no(r.error); }); },
+  del(id){ return new Promise((ok,no)=>{ const r=this.tx('readwrite').delete(id); r.onsuccess=()=>ok(); r.onerror=()=>no(r.error); }); },
+  all(){ return new Promise((ok,no)=>{ const out={}, r=this.tx('readonly').openCursor();
+    r.onsuccess=()=>{ const c=r.result; if(c){ out[c.key]=c.value; c.continue(); } else ok(out); }; r.onerror=()=>no(r.error); }); }
+};
+async function loadPhotos(){
+  try{
+    await PDB.open();
+    // 예전에 localStorage에 넣었던 사진은 옮기고 지움
+    let old = null; try{ old = JSON.parse(localStorage.getItem(PKEY)); }catch(e){}
+    if(old){ for(const k in old) await PDB.put(k, old[k]); try{ localStorage.removeItem(PKEY); }catch(e){} }
+    PH = await PDB.all();
+    if(Object.keys(PH).length) renderAll();
+  }catch(e){ PDB.db = null; }
+}
+function artOf(p){ return ART[PLACE_ART[p.id] || (p.mich ? 'cloche' : CAT_ART[p.cat]) || 'bag']; }
+function photoOf(p){ return PH[p.id] ? {src:PH[p.id], mine:true} : (WM[p.id] ? {src:WM[p.id].src, wm:WM[p.id]} : null); }
+function thumb(p, size){
+  const ph = photoOf(p), bg = p.cat==='base' ? '#FFF6B8' : (CAT_C[p.cat]||'#FFF6B8');
+  const inner = ph ? '<img src="'+ph.src+'" alt="'+esc(p.ko)+' 사진" loading="lazy">' : pix(artOf(p), ART_PAL, Math.max(2, Math.floor((size-14)/12)));
+  return '<span class="th'+(ph?' ph':'')+'" style="--s:'+size+'px;--c:'+bg+'">'+inner+(ph&&ph.mine?'<em>내 사진</em>':'')+'</span>';
+}
+function pickPhoto(id){
+  const inp = document.createElement('input'); inp.type='file'; inp.accept='image/*';
+  inp.onchange = () => { const f = inp.files[0]; if(f) shrinkPhoto(f, id); };
+  inp.click();
+}
+function shrinkPhoto(file, id){
+  const img = new Image(), url = URL.createObjectURL(file);
+  img.onload = () => {
+    const max = 480, r = Math.min(1, max/Math.max(img.width, img.height));
+    const c = document.createElement('canvas'); c.width = Math.round(img.width*r); c.height = Math.round(img.height*r);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+    const data = c.toDataURL('image/jpeg', .72);
+    const done = () => { renderAll(); if($('#sheet').classList.contains('on')) openPhoto(id); };
+    if(!PDB.db){ toast('이 브라우저에선 사진을 저장할 수 없어요 (개인정보 보호 모드인지 확인)'); return; }
+    PDB.put(id, data).then(()=>{ PH[id] = data; toast('사진을 넣었어요'); done(); })
+      .catch(()=>{ toast('저장 공간이 꽉 찼어요. 안 쓰는 사진을 지워 주세요'); });
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); toast('이 사진은 열 수 없어요. JPG나 PNG로 다시 골라 주세요'); };
+  img.src = url;
+}
+function delPhoto(id){
+  ask('내가 넣은 사진을 지울까요?', '지우기', () => {
+    const fin = () => { delete PH[id]; renderAll(); toast('사진을 지웠어요'); };
+    PDB.db ? PDB.del(id).then(fin).catch(()=>toast('사진을 지우지 못했어요. 다시 해 주세요')) : fin();
+  });
+}
+function openPhoto(id){
+  const p = place(id), ph = photoOf(p);
+  let h = '<div class="bigph" style="--c:'+(CAT_C[p.cat]||'#FFF6B8')+'">'+(ph ? '<img src="'+ph.src+'" alt="'+esc(p.ko)+' 사진">' : pix(artOf(p), ART_PAL, 14))+'</div>';
+  if(ph && ph.wm) h += '<p class="credit">사진: '+esc(ph.wm.by)+' · '+esc(ph.wm.lic)+' · <a href="'+esc(ph.wm.page)+'" target="_blank" rel="noopener">위키미디어 원본</a></p>';
+  if(!ph) h += '<p class="credit">사진이 없어서 그림으로 보여 줘요. amap·대중점평에서 캡처한 사진이나 직접 찍은 사진을 넣을 수 있어요.</p>';
+  h += '<div class="btns" style="margin:12px 0 0"><button class="btn ac" onclick="pickPhoto(\''+id+'\')">'+(PH[id]?'사진 바꾸기':'내 사진 넣기')+'</button>'
+    + (PH[id] ? '<button class="btn danger" onclick="delPhoto(\''+id+'\')">내 사진 지우기</button>' : '')+'</div>'
+    + '<p class="credit" style="margin-top:12px">내 사진은 이 기기에만 저장돼요. 백업 복사에는 들어가지 않아요.</p>';
+  openSheet(p.ko, h); sheetPlace = null;
+}
+
+const MASCOT = ['....KKKK....','..KKWKWKKK..','.KWWWWWWWWK.','KWWWWWWWWWWK','KWWKWWWWKWWK','KWPWWWWWWPWK','KWWWWKKWWWWK','.KWWWWWWWWK.','..KKKKKKKK..'];
+const ICON_WALK = pix(PXI.down, null, 2);
+const ICON_STAR = on => pix(PXI.star, {K:'#0B0A05', Y: on ? '#F2C94C' : '#FFFCF7'}, 2.4);
+
+/* ───────── 지도 ───────── */
+// 위치는 대략 (지도 위 표시용). 체인·위치 미확인 곳은 없음
+const LL = {
+  hotel:[113.3275,23.1335], grandview:[113.3275,23.1335], taotaoju:[113.3275,23.1335], feidachu:[113.3275,23.1335], miniso:[113.3275,23.1335], aquarium:[113.3275,23.1335],
+  parc:[113.3232,23.1322], teemall:[113.3240,23.1362], taikoo:[113.3330,23.1345], ole:[113.3330,23.1345], ama:[113.3330,23.1345], jiang:[113.3342,23.1358],
+  liuyun:[113.3255,23.1272], laihui:[113.3250,23.1268], jpg:[113.3262,23.1280],
+  bingsheng:[113.3362,23.1262], k11:[113.3275,23.1188], huacheng:[113.3250,23.1170], laiheen:[113.3302,23.1176], tower:[113.3245,23.1065], cruise:[113.3215,23.1128],
+  dongshankou:[113.2962,23.1238], badmarket:[113.2952,23.1248], labelhood:[113.2978,23.1228], wassup:[113.2946,23.1230], side:[113.2970,23.1252], monmon:[113.2984,23.1242],
+  yuyue:[113.2850,23.1430],
+  shamian:[113.2445,23.1082], yongqing:[113.2440,23.1215], sxj:[113.2512,23.1190], yinji:[113.2497,23.1196], nanxin:[113.2527,23.1197], chenjiaci:[113.2530,23.1265]
+};
+const CAT_C = {food:'#F6B8A0',cafe:'#E3CBA8',dessert:'#F7C6D9',sight:'#B0DBF0',fun:'#CDBDF2',mall:'#FFF6B8',vintage:'#A5E6BA',mart:'#D6E9A6',base:'#0B0A05'};
+const CAT_CH = {food:'맛',cafe:'카',dessert:'디',sight:'볼',fun:'놀',mall:'몰',vintage:'옷',mart:'마',base:'숙'};
+const MG = {lng0:113.226, lng1:113.354, lat0:23.152, H:540};
+const MK = 1000/(MG.lng1-MG.lng0);
+const prj = ll => [(ll[0]-MG.lng0)*MK, (MG.lat0-ll[1])*MK*1.088];
+const RIVER = [[113.222,23.132],[113.231,23.120],[113.237,23.111],[113.244,23.104],[113.253,23.107],[113.262,23.113],[113.270,23.117],[113.282,23.119],[113.293,23.116],[113.305,23.113],[113.318,23.1115],[113.330,23.1112],[113.342,23.112],[113.358,23.110]];
+const RIVER_S = [[113.244,23.104],[113.247,23.095],[113.249,23.085]];
+const LINE1 = [['黄沙',113.2445,23.1145],['长寿路',113.2505,23.1215],['陈家祠',113.2555,23.1270],['西门口',113.2620,23.1290],['公园前',113.2660,23.1270],['农讲所',113.2775,23.1270],['烈士陵园',113.2860,23.1275],['东山口',113.2960,23.1222],['杨箕',113.3110,23.1245],['体育西路',113.3215,23.1340],['体育中心',113.3278,23.1362]];
+const STA_LB = {'黄沙':1,'长寿路':1,'陈家祠':1,'公园前':1,'东山口':1,'杨箕':1,'体育西路':1,'体育中心':1};
+const AREA_LB = [['리완',113.253,23.140],['둥산커우',113.297,23.134],['톈허',113.336,23.146],['주장신청',113.338,23.123],['하이주',113.290,23.099]];
+const ZOOMS = {all:{t:'전체'}, tianhe:{t:'톈허·주장신청',b:[113.306,23.103,113.346,23.140]}, dongshan:{t:'둥산커우',b:[113.288,23.115,113.306,23.131]}, liwan:{t:'리완',b:[113.232,23.102,113.266,23.134]}};
+let mapDay = -1, mapZoom = 'all', mapClusters = [], sheetPlace = null;
+
+function dayPts(d){ return S.days[d] ? S.days[d].items.map((x,k)=>({x,k,ll:x.placeId&&LL[x.placeId]})).filter(o=>o.ll) : []; }
+function bboxVB(b){
+  const a = prj([b[0],b[3]]), c = prj([b[2],b[1]]);
+  let x=a[0], y=a[1], w=c[0]-a[0], h=c[1]-a[1];
+  // 폰에서 너무 길쭉하지 않게 비율 맞춤
+  if(h > w*1.05){ const nw = h/1.05; x -= (nw-w)/2; w = nw; }
+  if(w > h*1.5){ const nh = w/1.5; y -= (nh-h)/2; h = nh; }
+  return [x,y,w,h];
+}
+function mapVB(){
+  if(mapZoom==='fit' && mapDay>=0){
+    const pts = dayPts(mapDay);
+    if(pts.length){
+      let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+      pts.forEach(o=>{ x0=Math.min(x0,o.ll[0]); x1=Math.max(x1,o.ll[0]); y0=Math.min(y0,o.ll[1]); y1=Math.max(y1,o.ll[1]); });
+      const pw = Math.max(.016, (x1-x0)*1.3+.010), ph = Math.max(.012, (y1-y0)*1.3+.006);
+      const cx=(x0+x1)/2, cy=(y0+y1)/2;
+      const v = bboxVB([cx-pw/2, cy-ph/2, cx+pw/2, cy+ph/2 + ph*.12]);
+      return v;
+    }
+  }
+  const z = ZOOMS[mapZoom];
+  if(!z || !z.b) return [0,0,1000,MG.H];
+  return bboxVB(z.b);
+}
+function polyPts(arr){ return arr.map(p=>prj(p).map(n=>n.toFixed(1)).join(',')).join(' '); }
+
+function renderMap(){
+  const wrap = $('#mapWrap'); if(!wrap) return;
+  // 고르는 칩
+  const dayChip = (v,t) => '<button class="chip'+(mapDay===v?' on':'')+'" onclick="setMapDay('+v+')">'+t+'</button>';
+  $('#mapDays').innerHTML = dayChip(-1,'모든 장소') + dayChip(-2,'찜') + S.days.map((_,i)=>dayChip(i,(i+1)+'일차 동선')).join('');
+  const zs = Object.keys(ZOOMS).concat(mapDay>=0?['fit']:[]);
+  $('#mapZooms').innerHTML = zs.map(z=>'<button class="chip'+(mapZoom===z?' on':'')+'" onclick="setMapZoom(\''+z+'\')">'+(z==='fit'?'동선 맞춤':ZOOMS[z].t)+'</button>').join('');
+
+  const vb = mapVB();
+  const wpx = wrap.clientWidth || 340;
+  const u = vb[2]/wpx;                       // 화면 1px = 지도 u 단위
+  let g = '';
+  // 바탕 + 모눈
+  g += '<rect x="-400" y="-400" width="1800" height="1400" fill="#FFFCF7"/>';
+  let grid=''; for(let i=-400;i<=1400;i+=40){ grid += 'M'+i+' -400V1400M-400 '+i+'H1400'; }
+  g += '<path d="'+grid+'" stroke="#EFE8D4" stroke-width="'+(1*u)+'" fill="none"/>';
+  // 강
+  g += '<polyline points="'+polyPts(RIVER)+'" fill="none" stroke="#0B0A05" stroke-width="'+(19*u)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  g += '<polyline points="'+polyPts(RIVER_S)+'" fill="none" stroke="#0B0A05" stroke-width="'+(15*u)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  g += '<polyline points="'+polyPts(RIVER)+'" fill="none" stroke="#B0DBF0" stroke-width="'+(14*u)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  g += '<polyline points="'+polyPts(RIVER_S)+'" fill="none" stroke="#B0DBF0" stroke-width="'+(10*u)+'" stroke-linejoin="round" stroke-linecap="round"/>';
+  const rl = prj([113.306,23.1122]);
+  g += '<text x="'+rl[0]+'" y="'+(rl[1]+4*u)+'" font-family="Galmuri11,sans-serif" font-size="'+(10*u)+'" fill="#0B0A05" text-anchor="middle">주강 珠江</text>';
+  // 동네 이름
+  AREA_LB.forEach(a=>{ const p=prj([a[1],a[2]]); g += '<text x="'+p[0]+'" y="'+p[1]+'" font-family="Galmuri11,sans-serif" font-size="'+(15*u)+'" fill="#6b6555" fill-opacity=".55" text-anchor="middle">'+a[0]+'</text>'; });
+  // 지하철 1호선
+  const l1 = LINE1.map(s=>[s[1],s[2]]);
+  g += '<polyline points="'+polyPts(l1)+'" fill="none" stroke="#0B0A05" stroke-width="'+(7*u)+'" stroke-linejoin="round"/>';
+  g += '<polyline points="'+polyPts(l1)+'" fill="none" stroke="#F2C94C" stroke-width="'+(4*u)+'" stroke-linejoin="round"/>';
+  LINE1.forEach(s=>{
+    const p = prj([s[1],s[2]]), r = 3.5*u;
+    g += '<rect x="'+(p[0]-r)+'" y="'+(p[1]-r)+'" width="'+(2*r)+'" height="'+(2*r)+'" fill="#FFFCF7" stroke="#0B0A05" stroke-width="'+(1.5*u)+'"/>';
+    if(STA_LB[s[0]] && vb[2] < 600) g += '<text x="'+(p[0]+6*u)+'" y="'+(p[1]-6*u)+'" font-family="PingFang SC,sans-serif" font-size="'+(9.5*u)+'" fill="#3a3528">'+s[0]+'</text>';
+  });
+  const lp = prj([113.2660,23.1305]);
+  g += '<text x="'+lp[0]+'" y="'+lp[1]+'" font-family="Galmuri11,sans-serif" font-size="'+(9*u)+'" fill="#3a3528" text-anchor="middle">지하철 1호선</text>';
+  // 공항 방향
+  if(vb[1] < 40){ const ap = prj([113.268,23.1485]); g += '<text x="'+ap[0]+'" y="'+Math.max(ap[1], vb[1]+14*u)+'" font-family="Galmuri11,sans-serif" font-size="'+(10*u)+'" fill="#3a3528" text-anchor="middle">▲ 바이윈 공항 (북쪽 약 30km)</text>'; }
+
+  // 핀 모으기
+  let raw = [], path = '';
+  if(mapDay>=0){
+    const pts = dayPts(mapDay);
+    pts.forEach(o=>{ const p=place(o.x.placeId); raw.push({ll:o.ll, ids:[o.x.placeId], nums:[o.k+1], cat:p.cat}); });
+    if(pts.length>1) path = '<polyline points="'+polyPts(pts.map(o=>o.ll))+'" fill="none" stroke="#0B0A05" stroke-width="'+(2.5*u)+'" stroke-dasharray="'+(6*u)+' '+(4*u)+'"/>';
+    if(!pts.some(o=>o.x.placeId==='hotel')) raw.push({ll:LL.hotel, ids:['hotel'], nums:[], cat:'base', ref:true});
+  } else {
+    allPlaces().forEach(p=>{
+      if(!LL[p.id]) return;
+      if(mapDay===-2 && !S.fav[p.id] && p.id!=='hotel') return;
+      raw.push({ll:LL[p.id], ids:[p.id], nums:[], cat:p.cat});
+    });
+  }
+  // 겹치면 하나로 (화면에서 22px 안)
+  const thr = 22*u, cl = [];
+  raw.forEach(r=>{
+    const xy = prj(r.ll);
+    const hit = cl.find(c=>Math.hypot(c.x-xy[0], c.y-xy[1]) < thr && !c.ref && !r.ref);
+    if(hit){ r.ids.forEach(i=>{ if(!hit.ids.includes(i)) hit.ids.push(i); }); hit.nums.push(...r.nums); }
+    else cl.push({x:xy[0], y:xy[1], ids:r.ids.slice(), nums:r.nums.slice(), cat:r.cat, ref:r.ref});
+  });
+  mapClusters = cl;
+  g += path;
+  // 위에서 아래 순으로 그려야 겹칠 때 자연스러움
+  const order = cl.map((c,i)=>i).sort((a,b)=>cl[a].y-cl[b].y);
+  order.forEach(i=>{
+    const c = cl[i];
+    let label, fill, tc = '#0B0A05';
+    if(mapDay>=0 && c.nums.length){ const n=[...new Set(c.nums)].sort((a,b)=>a-b); label = n.length>2 ? n[0]+'…'+n[n.length-1] : n.join('·'); fill = '#A5E6BA'; }
+    else if(c.ids.length>1){ label = c.ids.length+'곳'; fill = '#FFF6B8'; }
+    else { label = CAT_CH[c.cat]||'·'; fill = CAT_C[c.cat]||'#FFF6B8'; }
+    if(c.cat==='base' && c.ids.length===1){ fill = '#0B0A05'; tc = '#FFF6B8'; label = '숙'; }
+    const s = (c.ref?18:24)*u, w = Math.max(s, (String(label).length*8+10)*u), x = c.x - w/2, y = c.y - s - 6*u, sw = 2*u;
+    g += '<g class="pin" onclick="mapTap('+i+')" role="button" aria-label="'+esc(c.ids.map(id=>place(id).ko).join(', '))+'">'
+      + '<rect x="'+(x+3*u)+'" y="'+(y+3*u)+'" width="'+w+'" height="'+s+'" fill="#0B0A05"/>'
+      + '<polygon points="'+(c.x-5*u)+','+(y+s-1*u)+' '+(c.x+5*u)+','+(y+s-1*u)+' '+c.x+','+(c.y)+'" fill="#0B0A05"/>'
+      + '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+s+'" fill="'+fill+'" stroke="#0B0A05" stroke-width="'+sw+'"/>'
+      + '<text x="'+c.x+'" y="'+(y+s/2+4.2*u)+'" font-family="Galmuri11,sans-serif" font-size="'+(12*u)+'" fill="'+tc+'" text-anchor="middle">'+esc(label)+'</text>'
+      + (vb[2] < 520 && !c.ref ? '<text x="'+c.x+'" y="'+(c.y+12*u)+'" font-family="Galmuri11,sans-serif" font-size="'+(10.5*u)+'" fill="#0B0A05" text-anchor="middle" stroke="#FFFCF7" stroke-width="'+(3.5*u)+'" paint-order="stroke" stroke-linejoin="round">'+esc(place(c.ids[0]).ko+(c.ids.length>1?' 외':''))+'</text>' : '')
+      + '<rect x="'+(x-4*u)+'" y="'+(y-4*u)+'" width="'+(w+8*u)+'" height="'+(s+14*u)+'" fill="transparent"/></g>';
+  });
+  wrap.innerHTML = '<svg viewBox="'+vb.map(n=>n.toFixed(1)).join(' ')+'" xmlns="http://www.w3.org/2000/svg">'+g+'</svg>';
+
+  // 아래 설명
+  if(mapDay>=0){
+    $('#mapLegend').innerHTML = '<span>번호 = '+(mapDay+1)+'일차 순서</span><span>점선 = 이동 동선</span><span><i style="background:#0B0A05"></i>숙소</span>';
+    const d = S.days[mapDay];
+    $('#mapBelow').innerHTML = '<div class="sec">'+(mapDay+1)+'일차 순서</div><div class="list maplist">'
+      + (d.items.length ? d.items.map((x,k)=>{
+          const p = x.placeId && place(x.placeId), on = x.placeId && LL[x.placeId];
+          return '<button class="row" onclick="'+(p?'openPlaceSheet(\''+p.id+'\')':'')+'"><span class="num" style="--c:'+(on?'#A5E6BA':'#F5F1E8')+'">'+(k+1)+'</span>'
+            + '<span class="grow"><b>'+esc(itemName(x))+'</b><br><span class="a">'+(x.time?esc(x.time)+' · ':'')+(on?'':'지도에 없음 · ')+esc(itemZh(x))+'</span></span>'+(p?CHEV:'')+'</button>';
+        }).join('') : '<div class="row">아직 일정이 없어요</div>')
+      + '</div>';
+  } else {
+    $('#mapLegend').innerHTML = Object.keys(CATS).filter(c=>c!=='base').map(c=>'<span><i style="background:'+CAT_C[c]+'"></i>'+CAT_CH[c]+' '+CATS[c]+'</span>').join('')
+      + '<span><i style="background:#FFF6B8"></i>여러 곳 겹침</span>';
+    const off = allPlaces().filter(p=>!LL[p.id] && (mapDay!==-2 || S.fav[p.id]));
+    $('#mapBelow').innerHTML = '<p class="cnt" style="padding-top:10px">그림 지도라 위치는 대략이에요. 정확한 길은 고덕지도로 찾아 주세요</p>'
+      + (off.length ? '<div class="sec">지도에 없는 곳 (체인·위치 미확인)</div><div class="offmap">'
+      + off.map(p=>'<button class="chip" onclick="openPlaceSheet(\''+p.id+'\')">'+esc(p.ko)+'</button>').join('')+'</div>' : '');
+  }
+}
+function setMapDay(v){ mapDay = v; mapZoom = v>=0 ? 'fit' : 'all'; renderMap(); }
+function setMapZoom(z){ mapZoom = z; renderMap(); }
+function mapTap(i){
+  const c = mapClusters[i]; if(!c) return;
+  if(c.ids.length===1) return openPlaceSheet(c.ids[0]);
+  openSheet('이 근처 '+c.ids.length+'곳', '<div class="pick">'+c.ids.map(id=>{ const p=place(id);
+    return '<button onclick="openPlaceSheet(\''+id+'\')"><div><div style="font-weight:700">'+esc(p.ko)+'</div><div class="a"><span class="zh">'+esc(p.zh)+'</span> · '+CATS[p.cat]+'</div></div>'+CHEV+'</button>'; }).join('')+'</div>');
+}
+function openPlaceSheet(id){ const p = place(id); if(!p) return; openSheet(p.ko, placeCard(p)); sheetPlace = id; }
+function openMapDay(){ mapDay = S.day; mapZoom = 'fit'; go('map'); }
+let _mapRT; window.addEventListener('resize', ()=>{ clearTimeout(_mapRT); _mapRT = setTimeout(()=>{ if($('#pg-map').classList.contains('on')) renderMap(); }, 150); });
+
+
+const CHEV = '<svg class="chev" width="8" height="13" viewBox="0 0 8 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M1.5 1.5l5 5-5 5"/></svg>';
+
+/* ───────── 헤더 ───────── */
+function renderTop(){
+  const n = S.days.length;
+  let s = (n-1)+'박 '+n+'일 · 4명 · 메리어트 톈허';
+  const d0 = dayDate(0);
+  if(d0){
+    const today = new Date(); today.setHours(0,0,0,0);
+    const diff = Math.round((d0-today)/864e5);
+    s += diff>0 ? ' · <em>D-'+diff+'</em>' : diff===0 ? ' · <em>오늘 출발</em>' : '';
+  } else s += ' · <em>날짜 미정</em>';
+  $('#topSub').innerHTML = s;
+}
+
+/* ───────── 일정 탭 ───────── */
+function renderFlights(){
+  const f = S.flights;
+  const row = (k,label) => {
+    const x = f[k];
+    const has = x.dep || x.arr || x.date;
+    const time = has ? esc(x.dep||'--:--')+' → '+esc(x.arr||'--:--') : '';
+    const sub = [x.date ? fmtDate(new Date(x.date+'T00:00:00')) : '', x.no].filter(Boolean).map(esc).join(' · ');
+    return '<button class="row" onclick="openFlight(\''+k+'\')"><div class="flt" style="flex:1"><div class="tag">'+label+'</div>'
+      + '<div>'+(has?'<div class="tm">'+time+'</div><div class="no">'+(sub||'편명 없음')+'</div>':'<div class="val empty">미정 · 눌러서 입력</div>')+'</div><div></div></div>'+CHEV+'</button>';
+  };
+  $('#flights').innerHTML = row('out','가는 편') + row('back','오는 편');
+}
+function minus(hm, mins){
+  const m = /^(\d{1,2}):(\d{2})$/.exec(hm||''); if(!m) return '';
+  let t = (+m[1])*60 + (+m[2]) - mins; t = ((t%1440)+1440)%1440;
+  return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');
+}
+function renderDays(){
+  if(S.day >= S.days.length) S.day = S.days.length-1;
+  $('#daySeg').innerHTML = S.days.map((d,i)=>'<button class="'+(i===S.day?'on':'')+'" onclick="pickDay('+i+')">'+(i+1)+'일차</button>').join('')
+    + '<button class="add" onclick="addDay()" aria-label="날짜 추가">+</button>';
+  const i = S.day, d = S.days[i], dt = dayDate(i);
+  let h = '<div class="dayhead"><h2>'+(i+1)+'일차</h2><div class="d">'+(dt?fmtDate(dt):'날짜 미정')+'</div></div>';
+
+  // 지역 요약 + 휴무 경고
+  const areas = [...new Set(d.items.map(x=>x.placeId && place(x.placeId)).filter(p=>p && !['any','etc','airport'].includes(p.area)).map(p=>p.area))];
+  const warn = dt && d.items.some(x=>{ const p=x.placeId&&place(x.placeId); return p && p.closed && p.closed.includes(dt.getDay()); });
+  if(areas.length || warn){
+    h += '<div class="areas">'+areas.map(a=>'<span class="pill ac">'+AREAS[a].short+'</span>').join('')
+      + (warn?'<span class="pill warn">'+DOW[dt.getDay()]+'요일 휴무 많은 곳 있음</span>':'')+'</div>';
+  }
+  // 항공 배너
+  const f = S.flights;
+  if(i===0 && f.out.arr) h += '<div class="banner">광저우 도착 <b>'+esc(f.out.arr)+'</b> · 입국 수속 후 호텔까지 1시간 정도</div>';
+  if(i===S.days.length-1 && f.back.dep) h += '<div class="banner">출국 <b>'+esc(f.back.dep)+'</b> · 호텔에서 <b>'+minus(f.back.dep,240)+'</b>까지 출발 (공항 1시간 + 3시간 전 도착)</div>';
+
+  if(!d.items.length){
+    h += '<div class="tl"><div class="empty-day">아직 일정이 없어요<br>아래에서 장소를 넣어 보세요</div></div>';
+  } else {
+    h += '<div class="tl">';
+    d.items.forEach((x,k)=>{
+      if(k>0){
+        const auto = moveText(d.items[k-1].placeId, x.placeId);
+        const txt = x.move || auto;
+        if(txt) h += '<div class="mv'+(x.move?' custom':'')+'">'+ICON_WALK+esc(txt)+'</div>';
+      }
+      const p = x.placeId && place(x.placeId);
+      const zh = itemZh(x);
+      const metas = [];
+      if(p && p.mich) metas.push('<span class="ac">미슐랭 '+p.mich+'</span>');
+      if(p && p.price && !(p.price[0]===0&&p.price[1]===0)) metas.push('<span>1인 ¥'+p.price[0]+(p.price[0]!==p.price[1]?'~'+p.price[1]:'')+'</span>');
+      if(p && p.closed && dt && p.closed.includes(dt.getDay())) metas.push('<span class="warn">'+DOW[dt.getDay()]+'요일 휴무 많음</span>');
+      h += '<button class="it" onclick="openItem('+k+')"><div class="t'+(x.time?'':' none')+'">'+(esc(x.time)||'--:--')+'</div><div style="min-width:0">'
+        + '<div class="ti">'+esc(itemName(x))+'</div>'
+        + (zh && zh!==itemName(x) ? '<div class="zhl zh">'+esc(zh)+'</div>'+pyLine(zh, x.zh?null:p) : '')
+        + (x.memo ? '<div class="memo">'+esc(x.memo)+'</div>' : '')
+        + (metas.length ? '<div class="meta">'+metas.join('')+'</div>' : '')
+        + '</div>'+(p ? thumb(p,50) : '<span></span>')+'</button>';
+    });
+    h += '</div>';
+  }
+  h += '<div class="btns"><button class="btn ac" onclick="openPicker()">장소에서 추가</button><button class="btn" onclick="openItem(-1)">직접 추가</button></div>';
+  h += '<div class="btns"><button class="btn sm" onclick="openMapDay()">지도에서 동선 보기</button><button class="btn sm" onclick="sortDay()">시간순 정렬</button>'
+    + (S.days.length>1?'<button class="btn sm danger" onclick="delDay()">이 날 삭제</button>':'')+'</div>';
+  $('#dayView').innerHTML = h;
+}
+function pickDay(i){ S.day=i; save(); renderDays(); }
+function addDay(){ S.days.push({id:uid(),items:[]}); S.day=S.days.length-1; save(); renderAll(); }
+function delDay(){
+  const d=S.days[S.day];
+  const run = () => { S.days.splice(S.day,1); S.day=Math.max(0,S.day-1); save(); renderAll(); };
+  if(!d.items.length) return run();
+  ask((S.day+1)+'일차 일정 '+d.items.length+'개를 지울까요?', '지우기', run);
+}
+function sortDay(){
+  const d=S.days[S.day];
+  d.items.sort((a,b)=>(a.time||'99:99').localeCompare(b.time||'99:99'));
+  save(); renderDays(); toast('시간순으로 정렬했어요');
+}
+
+/* ───────── 시트 ───────── */
+function openSheet(title, html){ sheetPlace = null; $('#shTitle').textContent=title; $('#shBody').innerHTML=html; $('#dim').classList.add('on'); $('#sheet').classList.add('on'); $('#shBody').scrollTop=0; }
+function closeSheet(){ sheetPlace = null; $('#dim').classList.remove('on'); $('#sheet').classList.remove('on'); }
+
+function openFlight(k){
+  const x = S.flights[k];
+  openSheet(k==='out'?'가는 편':'오는 편',
+    '<div class="fld"><label>편명</label><input id="fNo" value="'+esc(x.no)+'" placeholder="예: KE865" autocapitalize="characters"></div>'
+   +'<div class="fld"><label>날짜</label><input id="fDate" type="date" value="'+esc(x.date)+'">'
+   +(k==='out'?'<div class="hint">가는 날 날짜로 1일차부터 날짜가 매겨져요</div>':'')+'</div>'
+   +'<div class="two"><div class="fld"><label>출발 (현지 시간)</label><input id="fDep" type="time" value="'+esc(x.dep)+'"></div>'
+   +'<div class="fld"><label>도착 (현지 시간)</label><input id="fArr" type="time" value="'+esc(x.arr)+'"></div></div>'
+   +'<div class="btns" style="margin:4px 0 0"><button class="btn ac" onclick="saveFlight(\''+k+'\')">저장</button></div>');
+}
+function saveFlight(k){
+  S.flights[k] = {no:$('#fNo').value.trim(), date:$('#fDate').value, dep:$('#fDep').value, arr:$('#fArr').value};
+  // 오는 편 날짜가 있으면 일수 맞추기 제안
+  if(S.flights.out.date && S.flights.back.date){
+    const n = Math.round((new Date(S.flights.back.date)-new Date(S.flights.out.date))/864e5)+1;
+    if(n>0 && n<15 && n!==S.days.length){
+      if(n>S.days.length){ while(S.days.length<n) S.days.push({id:uid(),items:[]}); toast(n+'일 일정으로 늘렸어요'); }
+      else toast('항공 날짜는 '+n+'일인데 일정은 '+S.days.length+'일이에요');
+    }
+  }
+  save(); closeSheet(); renderAll();
+}
+
+function openItem(k){
+  const d = S.days[S.day];
+  const x = k>=0 ? d.items[k] : {time:'',placeId:null,title:'',zh:'',memo:'',move:''};
+  const p = x.placeId && place(x.placeId);
+  const auto = k>0 ? moveText(d.items[k-1].placeId, x.placeId) : '';
+  let h = '';
+  if(p) h += '<div class="card" style="margin-bottom:12px"><div style="font-weight:700">'+esc(p.ko)+'</div><div class="zh" style="color:var(--t2);font-size:14px">'+esc(p.zh)+'</div>'+pyLine(p.zh,p)+links(p)
+    + '<div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap"><button class="btn sm" style="background:var(--bg)" onclick="copy(\''+jsq(p.gaode||p.zh)+'\')">고덕 검색어 복사</button>'
+    + '<button class="btn sm" style="background:var(--bg)" onclick="closeSheet();showPlace(\''+p.id+'\')">장소 정보</button></div></div>';
+  h += '<div class="fld"><label>시간</label><input id="iTime" type="time" value="'+esc(x.time)+'"></div>';
+  h += '<div class="fld"><label>이름'+(p?' (비우면 장소 이름)':'')+'</label><input id="iTitle" value="'+esc(x.title)+'" placeholder="'+(p?esc(p.ko):'예: 호텔 휴식')+'"></div>';
+  if(!p) h += '<div class="fld"><label>중국어 (고덕 검색용, 선택)</label><input id="iZh" class="zh" value="'+esc(x.zh)+'"></div>';
+  h += '<div class="fld"><label>메모</label><textarea id="iMemo">'+esc(x.memo)+'</textarea></div>';
+  if(k!==0) h += '<div class="fld"><label>앞 장소에서 이동</label><input id="iMove" value="'+esc(x.move)+'" placeholder="'+esc(auto||'예: 택시 15분')+'"><div class="hint">비우면 자동 안내'+(auto?' ('+esc(auto)+')':'')+'</div></div>';
+  h += '<div class="btns" style="margin:4px 0 0"><button class="btn ac" onclick="saveItem('+k+')">저장</button></div>';
+  if(k>=0){
+    h += '<div class="btns" style="margin:10px 0 0">'
+      + '<button class="btn" '+(k===0?'disabled style="opacity:.35"':'')+' onclick="moveItem('+k+',-1)">위로</button>'
+      + '<button class="btn" '+(k===d.items.length-1?'disabled style="opacity:.35"':'')+' onclick="moveItem('+k+',1)">아래로</button></div>';
+    if(S.days.length>1) h += '<div class="fld" style="margin-top:14px"><label>다른 날로 옮기기</label><div class="daypick">'
+      + S.days.map((_,j)=>j===S.day?'':'<button onclick="toDay('+k+','+j+')">'+(j+1)+'일차</button>').join('')+'</div></div>';
+    h += '<div class="btns" style="margin:14px 0 0"><button class="btn danger" onclick="delItem('+k+')">이 일정 삭제</button></div>';
+  }
+  openSheet(k>=0?'일정 수정':'직접 추가', h);
+}
+function saveItem(k){
+  const d = S.days[S.day];
+  const x = k>=0 ? d.items[k] : {id:uid(),placeId:null};
+  x.time = $('#iTime').value;
+  x.title = $('#iTitle').value.trim();
+  if($('#iZh')) x.zh = $('#iZh').value.trim();
+  x.memo = $('#iMemo').value.trim();
+  x.move = $('#iMove') ? $('#iMove').value.trim() : (x.move||'');
+  if(k<0){
+    if(!x.title){ toast('이름을 적어 주세요'); return; }
+    d.items.push(x);
+  }
+  save(); closeSheet(); renderAll();
+}
+function moveItem(k,dir){
+  const a = S.days[S.day].items, j = k+dir;
+  if(j<0||j>=a.length) return;
+  [a[k],a[j]]=[a[j],a[k]]; save(); renderDays(); openItem(j);
+}
+function toDay(k,j){
+  const x = S.days[S.day].items.splice(k,1)[0];
+  x.move = '';
+  S.days[j].items.push(x); save(); closeSheet(); renderAll(); toast((j+1)+'일차로 옮겼어요');
+}
+function delItem(k){
+  const x = S.days[S.day].items[k];
+  ask('「'+itemName(x)+'」 일정을 지울까요?', '지우기', () => { S.days[S.day].items.splice(k,1); save(); renderAll(); });
+}
+
+/* 장소에서 추가 (일정 탭) */
+let pickCat='all';
+function openPicker(){
+  openSheet((S.day+1)+'일차에 장소 넣기',
+    '<div class="search" style="margin:0 0 10px"><input id="pq" placeholder="검색" oninput="renderPick()" autocomplete="off"></div>'
+    +'<div class="chips" id="pChips" style="padding:0 0 8px"></div><div class="pick" id="pList"></div>');
+  renderPick();
+}
+function renderPick(){
+  const q = ($('#pq')?.value||'').trim().toLowerCase();
+  $('#pChips').innerHTML = ['all',...Object.keys(CATS)].map(c=>'<button class="chip'+(pickCat===c?' on':'')+'" onclick="pickCat=\''+c+'\';renderPick()">'+(c==='all'?'전체':CATS[c])+'</button>').join('');
+  const list = allPlaces().filter(p=>(pickCat==='all'||p.cat===pickCat) && (!q || (p.ko+p.zh+(p.note||'')).toLowerCase().includes(q)));
+  $('#pList').innerHTML = list.map(p=>{
+    const u = usedIn(p.id);
+    return '<button onclick="addToDay(\''+p.id+'\','+S.day+',true)"><div><div style="font-weight:600">'+esc(p.ko)+'</div><div class="a"><span class="zh">'+esc(p.zh)+'</span> · '+AREAS[p.area].short+'</div></div>'
+      +(u.length?'<span class="used">'+u.join('·')+'일차</span>':'')+'</button>';
+  }).join('') || '<div class="empty-day">검색 결과가 없어요</div>';
+}
+function addToDay(id, j, fromPicker){
+  const d = S.days[j];
+  d.items.push({id:uid(),time:'',placeId:id,title:'',zh:'',memo:'',move:''});
+  save();
+  const p = place(id);
+  if(fromPicker){ closeSheet(); renderAll(); toast(p.ko+' → '+(j+1)+'일차'); }
+  else { closeSheet(); renderAll(); toast(p.ko+' → '+(j+1)+'일차에 넣었어요'); }
+}
+
+/* ───────── 장소 탭 ───────── */
+let cat='all', area='all';
+function placeCard(p){
+  const u = usedIn(p.id);
+  const badges = [];
+  if(p.mich) badges.push('<span class="bd mich">미슐랭 '+p.mich+'</span>');
+  (p.tags||[]).forEach(t=>badges.push('<span class="bd ac">'+(t==='영상'?'유튜브 영상':t)+'</span>'));
+  badges.push('<span class="bd cat" style="--c:'+CAT_C[p.cat]+(p.cat==='base'?';color:#FFF6B8':'')+'">'+CATS[p.cat]+'</span>');
+  badges.push('<span class="bd">'+AREAS[p.area].short+'</span>');
+  if(p.closed) badges.push('<span class="bd warn">'+p.closed.map(d=>DOW[d]).join('·')+'요일 휴무 많음</span>');
+  if(u.length) badges.push('<span class="bd ac">'+u.join('·')+'일차에 넣음</span>');
+  const pr = priceText(p);
+  const fav = S.fav[p.id];
+  return '<div class="pc" id="pc-'+p.id+'"><div class="h"><div style="min-width:0;flex:1"><div class="nmrow"><span class="nm">'+esc(p.ko)+'</span>'
+    + '<button class="star'+(fav?' on':'')+'" onclick="toggleFav(\''+p.id+'\')" aria-label="찜">'+ICON_STAR(fav)+'</button></div>'
+    + '<div class="zhn zh">'+esc(p.zh)+'</div>'+pyLine(p.zh,p)+'</div>'
+    + '<button class="thbtn" onclick="openPhoto(\''+p.id+'\')" aria-label="'+esc(p.ko)+' 사진 보기">'+thumb(p,76)+'</button></div>'
+    + '<div class="badges">'+badges.join('')+'</div>'
+    + (pr?'<div class="price">'+pr+'</div>':'')
+    + (p.addr?'<div class="note zh">'+esc(p.addr)+'</div>'+pyLine(p.addr):'')
+    + (p.note?'<div class="note">'+esc(p.note)+'</div>':'')
+    + (p.menu&&p.menu.length?'<div class="menu">'+p.menu.map(m=>'<button onclick="copy(\''+jsq(m[0])+'\')"><div><div class="zh">'+esc(m[0])+'</div>'+pyLine(m[0],m[2]?{py:m[2]}:null)+(m[1]?'<div class="ko">'+esc(m[1])+'</div>':'')+'</div><span class="cp">복사</span></button>').join('')+'</div>':'')
+    + links(p)
+    + '<div class="acts"><button onclick="copy(\''+jsq(p.gaode||p.zh)+'\')">고덕 검색어 복사</button><button class="ac" onclick="openAddTo(\''+p.id+'\')">일정에 넣기</button>'
+    + (p.custom?'<button onclick="openPlaceEdit(\''+p.id+'\')">수정</button>':'')+'</div></div>';
+}
+function jsq(s){ return esc(String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'")); }
+function renderPlaces(){
+  const counts = {};
+  allPlaces().forEach(p=>counts[p.cat]=(counts[p.cat]||0)+1);
+  $('#catChips').innerHTML = ['all','fav',...Object.keys(CATS).filter(c=>c!=='base')].map(c=>{
+    const lb = c==='all'?'전체':c==='fav'?'찜':CATS[c];
+    return '<button class="chip'+(cat===c?' on':'')+'" onclick="cat=\''+c+'\';renderPlaces()">'+lb+'</button>';
+  }).join('');
+  $('#areaChips').innerHTML = ['all','tianhe','dongshan','zhujiang','liwan','any','etc'].map(a=>'<button class="chip'+(area===a?' on':'')+'" onclick="area=\''+a+'\';renderPlaces()">'+(a==='all'?'모든 지역':AREAS[a].short)+'</button>').join('');
+  const q = $('#q').value.trim().toLowerCase();
+  const list = allPlaces().filter(p=>{
+    if(cat==='fav' ? !S.fav[p.id] : (cat!=='all' && p.cat!==cat)) return false;
+    if(cat==='all' && p.cat==='base') return false;
+    if(area!=='all' && p.area!==area) return false;
+    if(q){
+      const hay = (p.ko+' '+p.zh+' '+(p.note||'')+' '+(p.menu||[]).map(m=>m.join(' ')).join(' ')+' '+(p.mich?'미슐랭':'')).toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  $('#placeCnt').textContent = list.length+'곳 · 가격은 1인 기준 대략, 1위안 = '+(+S.rate||190)+'원';
+  $('#placeList').innerHTML = list.map(placeCard).join('') || '<div class="empty-day">해당하는 장소가 없어요</div>';
+}
+function toggleFav(id){ S.fav[id]=!S.fav[id]; if(!S.fav[id]) delete S.fav[id]; save(); renderPlaces(); renderRec(); renderMap();
+  if(sheetPlace===id && $('#sheet').classList.contains('on')) $('#shBody').innerHTML = placeCard(place(id)); }
+function openAddTo(id){
+  const p = place(id);
+  openSheet(p.ko+' 넣을 날', '<div class="daypick">'+S.days.map((d,j)=>{
+    const dt = dayDate(j);
+    return '<button onclick="addToDay(\''+id+'\','+j+')">'+(j+1)+'일차<span>'+(dt?fmtDate(dt):d.items.length+'개 일정')+'</span></button>';
+  }).join('')+'</div>');
+}
+function showPlace(id){
+  go('place'); cat='all'; area='all'; $('#q').value=''; renderPlaces();
+  const el = document.getElementById('pc-'+id);
+  if(el){ el.scrollIntoView({block:'center'}); el.style.boxShadow='0 0 0 2px var(--accent)'; setTimeout(()=>el.style.boxShadow='',1500); }
+}
+function openPlaceEdit(id){
+  const p = id ? place(id) : {ko:'',zh:'',cat:'food',area:'tianhe',note:'',price:null,menu:[]};
+  const opt = (o,v) => Object.keys(o).filter(k=>k!=='base'&&k!=='airport').map(k=>'<option value="'+k+'"'+(k===v?' selected':'')+'>'+(o[k].ko||o[k])+'</option>').join('');
+  openSheet(id?'장소 수정':'장소 직접 추가',
+    '<div class="fld"><label>이름</label><input id="eKo" value="'+esc(p.ko)+'"></div>'
+   +'<div class="fld"><label>중국어 상호 (고덕 검색용)</label><input id="eZh" class="zh" value="'+esc(p.zh)+'"></div>'
+   +'<div class="fld"><label>발음 (병음, 선택)</label><input id="ePy" value="'+esc(p.py||'')+'" placeholder="예: Táotáojū"></div>'
+   +'<div class="two"><div class="fld"><label>종류</label><select id="eCat">'+opt(CATS,p.cat)+'</select></div>'
+   +'<div class="fld"><label>지역</label><select id="eArea">'+opt(AREAS,p.area)+'</select></div></div>'
+   +'<div class="two"><div class="fld"><label>1인 최소 (위안)</label><input id="eP1" inputmode="numeric" value="'+(p.price?p.price[0]:'')+'"></div>'
+   +'<div class="fld"><label>1인 최대 (위안)</label><input id="eP2" inputmode="numeric" value="'+(p.price?p.price[1]:'')+'"></div></div>'
+   +'<div class="fld"><label>추천 메뉴 (한 줄에 하나, 「중국어 / 설명 / 발음」)</label><textarea id="eMenu" class="zh">'+esc((p.menu||[]).map(m=>m[0]+(m[1]||m[2]?' / '+(m[1]||''):'')+(m[2]?' / '+m[2]:'')).join('\n'))+'</textarea></div>'
+   +'<div class="fld"><label>메모</label><textarea id="eNote">'+esc(p.note)+'</textarea></div>'
+   +'<div class="btns" style="margin:4px 0 0"><button class="btn ac" onclick="savePlace('+(id?'\''+id+'\'':'')+')">저장</button></div>'
+   +(id?'<div class="btns" style="margin:10px 0 0"><button class="btn danger" onclick="delPlace(\''+id+'\')">장소 삭제</button></div>':''));
+}
+function savePlace(id){
+  const ko=$('#eKo').value.trim(); if(!ko){ toast('이름을 적어 주세요'); return; }
+  const p1=parseInt($('#eP1').value,10), p2=parseInt($('#eP2').value,10);
+  const data = {ko, zh:$('#eZh').value.trim()||ko, py:$('#ePy').value.trim(), cat:$('#eCat').value, area:$('#eArea').value, note:$('#eNote').value.trim(),
+    price: isNaN(p1)&&isNaN(p2) ? null : [isNaN(p1)?p2:p1, isNaN(p2)?p1:p2],
+    menu: $('#eMenu').value.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{ const [a,b,c]=l.split('/'); return [a.trim(), (b||'').trim(), (c||'').trim()]; }),
+    tags:[], custom:true};
+  if(id){ Object.assign(S.custom.find(x=>x.id===id), data); }
+  else { data.id='c'+uid(); S.custom.push(data); }
+  save(); closeSheet(); renderAll(); toast('저장했어요');
+}
+function delPlace(id){
+  const u = usedIn(id);
+  ask(u.length?u.join('·')+'일차 일정에서도 빠져요. 지울까요?':'이 장소를 지울까요?', '지우기', () => {
+    S.custom = S.custom.filter(x=>x.id!==id);
+    S.days.forEach(d=>d.items=d.items.filter(x=>x.placeId!==id));
+    save(); renderAll();
+  });
+}
+
+/* ───────── 추천 탭 ───────── */
+function renderRec(){
+  $('#courses').innerHTML = COURSES.map((c,ci)=>{
+    const ps = c.ids.map(place).filter(Boolean);
+    const total = ps.filter(p=>p.price).reduce((s,p)=>[s[0]+p.price[0],s[1]+p.price[1]],[0,0]);
+    return '<div class="course"><h3>'+esc(c.t)+'</h3><div class="why">'+esc(c.why)+'</div><ol>'
+      + ps.map((p,i)=>{
+          const mv = i>0 ? moveText(ps[i-1].id,p.id) : '';
+          return '<li><span class="n">'+(i+1)+'</span><div><span>'+esc(p.ko)+'</span> <span class="s zh">'+esc(p.zh)+'</span>'+(pyOf(p.zh,p)?' <span class="s">'+esc(pyOf(p.zh,p))+'</span>':'')
+            +(mv&&mv!=='같은 동네 · 걸어서'?'<div class="s">'+esc(mv)+'</div>':'')+'</div></li>';
+        }).join('')+'</ol>'
+      + '<div class="meta">'+(total[1]>0?'<span class="pill">먹는 데 1인 약 ¥'+total[0]+'~'+total[1]+'</span>':'')
+      + (c.warn?'<span class="pill warn">'+esc(c.warn)+'</span>':'')+'</div>'
+      + '<div class="btns" style="margin:12px 0 0"><button class="btn soft" onclick="openCourseTo('+ci+')">이 코스를 일정에 넣기</button></div></div>';
+  }).join('');
+  const not = allPlaces().filter(p=>((p.tags||[]).length || p.mich || S.fav[p.id]) && p.cat!=='base' && !usedIn(p.id).length);
+  $('#notUsed').innerHTML = not.map(placeCard).join('') || '<div class="empty-day">추천 장소를 다 넣었어요</div>';
+}
+function openCourseTo(ci){
+  const c = COURSES[ci];
+  openSheet(c.t+' 넣을 날', '<div class="daypick">'+S.days.map((d,j)=>{
+    const dt = dayDate(j);
+    return '<button onclick="addCourse('+ci+','+j+')">'+(j+1)+'일차<span>'+(dt?fmtDate(dt):d.items.length+'개 일정')+'</span></button>';
+  }).join('')+'</div><div class="hint" style="font-size:12.5px;color:var(--t2);margin-top:12px">이미 그 날에 있는 장소는 빼고 뒤에 붙여요</div>');
+}
+function addCourse(ci,j){
+  const d = S.days[j]; let n=0;
+  COURSES[ci].ids.forEach(id=>{ if(!d.items.some(x=>x.placeId===id)){ d.items.push({id:uid(),time:'',placeId:id,title:'',zh:'',memo:'',move:''}); n++; } });
+  S.day=j; save(); closeSheet(); renderAll(); toast((j+1)+'일차에 '+n+'곳 넣었어요');
+}
+
+/* ───────── 정보 탭 ───────── */
+function renderInfo(){
+  const h = P.find(p=>p.id==='hotel');
+  $('#infoView').innerHTML =
+    '<div class="sec">숙소</div><div class="pad"><div class="card info"><p><b>메리어트 호텔 톈허</b></p><p class="zh">'+esc(h.zh)+'</p>'+pyLine(h.zh)+'<p class="zh" style="margin-top:6px">'+esc('天河区 天河路228号')+'</p>'+pyLine('天河区 天河路228号')+links(h)
+    +'<p style="color:var(--t2);font-size:13px">正佳广场과 같은 건물 · 지하철 体育中心역</p>'
+    +'<button class="cpbtn" onclick="copy(\''+jsq(h.zh)+'\')">호텔 이름 복사</button> <button class="cpbtn" onclick="copy(\'天河区天河路228号\')">주소 복사</button>'
+    +'<p style="margin-top:12px;font-size:13px;color:var(--t2)">택시 기사님께는 이 화면의 중국어를 그대로 보여 주면 돼요</p></div></div>'
+
+    +'<div class="sec">고덕지도 쓰는 법</div><div class="pad"><div class="card info"><ol>'
+    +'<li>한국에서는 지도를 먼저 광저우로 옮겨야 해요 (안 옮기면 한국만 검색됨)</li>'
+    +'<li>장소 탭의 「고덕 검색어 복사」를 눌러 붙여넣기</li>'
+    +'<li>체인(喜茶·霸王茶姬·袁记云饺)은 지도를 正佳广场으로 옮긴 뒤 이름만 검색 → 거리순 맨 위가 가장 가까운 지점</li>'
+    +'<li>웹 링크는 앱으로 안 넘어가요. 복사·붙여넣기가 제일 확실해요</li></ol></div></div>'
+
+    +'<div class="sec">미슐랭 예약</div><div class="pad"><div class="card info"><p>4명이면 <b>1~2주 전</b> 예약. 메리어트 <b>컨시어지에 이메일</b>로 부탁하는 게 제일 쉬워요.</p>'
+    +'<p>炳胜公馆은 예약할 때 <span class="zh">脆皮荔枝鸡</span>(하루 15마리 한정)를 같이 요청하세요.</p></div></div>'
+
+    +'<div class="sec">이동·결제</div><div class="pad"><div class="card info">'
+    +'<p>4명이면 지하철보다 <b>택시·디디</b>가 편하고 비용도 비슷해요. 디디는 알리페이 안에서 부를 수 있어요.</p>'
+    +'<p>지하철 <b>1호선</b> 하나로 体育中心(호텔) → 东山口 → 陈家祠 → 长寿路 → 黄沙(沙面)까지 이어져요.</p>'
+    +'<p>결제는 알리페이·위챗페이에 한국 카드를 연결해 두세요.</p></div></div>'
+
+    +'<div class="sec">환율</div><div class="pad"><div class="card"><div class="rate">1위안 = <input id="rate" inputmode="numeric" value="'+(+S.rate||190)+'" onchange="S.rate=+this.value||190;save();renderAll()"> 원 <span style="color:var(--t2);font-size:13px">원화 표시에 써요</span></div></div></div>'
+
+    +'<div class="sec">사진 출처</div><div class="pad"><div class="card info"><p style="font-size:13px;color:var(--t2)">명소 사진은 위키미디어 공용의 자유 이용 사진이에요. 작게 줄여서 넣었어요.</p><ul class="credits">'
+    + Object.keys(WM).map(k=>'<li><b>'+esc(place(k).ko)+'</b> · '+esc(WM[k].by)+' · '+esc(WM[k].lic)+' · <a href="'+esc(WM[k].page)+'" target="_blank" rel="noopener">원본</a></li>').join('')+'</ul></div></div>'
+    +'<div class="sec">데이터</div><div class="pad"><div class="card info"><p style="font-size:13px;color:var(--t2)">고친 내용은 지금 보는 이 기기에만 저장돼요. 링크를 받은 사람은 처음 일정으로 보여요. 내가 고친 걸 같이 보는 기능은 다음 단계에서 붙여요.</p>'
+    +'<div class="btns" style="margin:10px 0 0"><button class="btn sm" style="background:var(--bg)" onclick="exportData()">백업 복사</button>'
+    +'<button class="btn sm" style="background:var(--bg)" onclick="openImport()">백업 붙여넣기</button>'
+    +'<button class="btn sm danger" style="background:var(--bg)" onclick="resetData()">처음 일정으로 되돌리기</button></div>'
+    +'</div></div>';
+}
+function exportData(){
+  openSheet('백업 복사',
+    '<p class="askmsg">아래 글자를 통째로 복사해서 메모 앱에 붙여 두세요. 나중에 「백업 붙여넣기」로 되살릴 수 있어요.</p>'
+    +'<div class="fld"><textarea id="bkOut" class="json" readonly>'+esc(JSON.stringify(S))+'</textarea></div>'
+    +'<div class="btns" style="margin:4px 0 0"><button class="btn ac" onclick="copyBackup()">전체 복사</button></div>');
+}
+function copyBackup(){
+  const ta = $('#bkOut'); const text = ta.value;
+  if(navigator.clipboard){ navigator.clipboard.writeText(text).then(()=>toast('백업을 복사했어요')).catch(sel); } else sel();
+  function sel(){ ta.focus(); ta.select(); try{ document.execCommand('copy'); toast('백업을 복사했어요'); }catch(e){ toast('글자를 길게 눌러 전체 선택 후 복사하세요'); } }
+}
+function openImport(){
+  openSheet('백업 붙여넣기',
+    '<p class="askmsg">「백업 복사」로 저장해 둔 글자를 붙여넣으세요. 지금 일정은 이걸로 바뀌어요.</p>'
+    +'<div class="fld"><textarea id="bkIn" class="json" placeholder="여기에 붙여넣기"></textarea></div>'
+    +'<div class="btns" style="margin:4px 0 0"><button class="btn ac" onclick="importData()">이걸로 바꾸기</button></div>');
+}
+function importData(){
+  let d; try{ d = JSON.parse($('#bkIn').value); }catch(e){}
+  if(!d || !d.days || !d.flights){ toast('백업 글자가 아니에요. 처음부터 끝까지 다 붙여넣었는지 확인하세요'); return; }
+  S = d; save(); closeSheet(); renderAll(); toast('불러왔어요');
+}
+function resetData(){
+  ask('항공편·일정·직접 추가한 장소가 모두 처음 상태로 돌아가요.', '되돌리기', () => { S = seed(); save(); renderAll(); toast('처음 일정으로 되돌렸어요'); });
+}
+/* 확인창 (링크 화면에서는 브라우저 확인창이 안 떠서 직접 만듦) */
+function ask(msg, yes, fn){
+  openSheet('확인', '<p class="askmsg">'+esc(msg)+'</p><div class="btns" style="margin:12px 0 0"><button class="btn" onclick="closeSheet()">취소</button><button class="btn danger-fill" id="askYes">'+esc(yes)+'</button></div>');
+  $('#askYes').onclick = () => { closeSheet(); fn(); };
+}
+
+/* ───────── 탭 ───────── */
+const TABS = [['plan','일정'],['place','장소'],['map','지도'],['rec','추천'],['info','정보']];
+$('#tabs').innerHTML = TABS.map((t,i)=>'<button class="'+(i?'':'on')+'" data-pg="'+t[0]+'">'+pix(PXI[t[0]],null,2.5)+t[1]+'</button>').join('');
+$('#mascot').innerHTML = pix(MASCOT,{K:'#0B0A05',W:'#FFFCF7',P:'#F7C6D9'},4);
+function go(pg){
+  document.querySelectorAll('.page').forEach(e=>e.classList.toggle('on', e.id==='pg-'+pg));
+  if(pg==='map') renderMap();
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.pg===pg));
+  window.scrollTo(0,0);
+}
+$('#tabs').addEventListener('click', e=>{ const b=e.target.closest('button'); if(b) go(b.dataset.pg); });
+$('#q').addEventListener('input', renderPlaces);
+
+function renderAll(){ renderTop(); renderFlights(); renderDays(); renderPlaces(); renderRec(); renderInfo(); renderMap(); }
+renderAll();
+loadPhotos();
+</script>
