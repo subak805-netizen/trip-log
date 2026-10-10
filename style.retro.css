@@ -308,3 +308,8 @@ nav.tabs button.on{color:var(--ink);background:var(--mint);border-color:var(--in
 .mzoom button{min-width:36px;height:36px;padding:0 6px;background:var(--paper);border:2px solid var(--ink);box-shadow:2px 2px 0 var(--ink);font-family:var(--px);font-size:18px;line-height:1}
 .mzoom button.rs{font-size:11px}
 .mzoom button:active{transform:translate(2px,2px);box-shadow:none}
+
+/* 몰 등급 */
+.bd.tier.t-lux{background:var(--ink);color:var(--yellow)}
+.bd.tier.t-mid{background:var(--sky)}
+.bd.tier.t-low{background:var(--mint-t)}

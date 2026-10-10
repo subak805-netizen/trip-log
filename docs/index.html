@@ -322,6 +322,11 @@ nav.tabs button.on{color:var(--ink);background:var(--mint);border-color:var(--in
 .mzoom button.rs{font-size:11px}
 .mzoom button:active{transform:translate(2px,2px);box-shadow:none}
 
+/* 몰 등급 */
+.bd.tier.t-lux{background:var(--ink);color:var(--yellow)}
+.bd.tier.t-mid{background:var(--sky)}
+.bd.tier.t-low{background:var(--mint-t)}
+
 </style>
 <div class="app">
   <header class="top">
@@ -351,6 +356,7 @@ nav.tabs button.on{color:var(--ink);background:var(--mint);border-color:var(--in
       <input id="q" placeholder="이름·메뉴·중국어로 검색" autocomplete="off">
     </div>
     <div class="chips" id="catChips"></div>
+    <div class="chips sub" id="tierChips"></div>
     <div class="chips sub" id="areaChips"></div>
     <div class="cnt" id="placeCnt"></div>
     <div class="pl" id="placeList"></div>
@@ -434,6 +440,7 @@ const PY = {
   '四色虾饺':'Sìsè Xiājiǎo','鲜虾干蒸烧卖':'Xiānxiā Gānzhēng Shāomài','韭黄鲜虾肠粉':'Jiǔhuáng Xiānxiā Chángfěn','凤尾香芋角':'Fèngwěi Xiāngyù Jiǎo','白玉藏珍':'Báiyù Cángzhēn',
   '鲍鱼天鹅酥':'Bàoyú Tiān\'é Sū','酥皮叉烧包':'Sūpí Chāshāo Bāo','金银蒜蒸排骨':'Jīnyín Suàn Zhēng Páigǔ','蟹粉小笼包':'Xièfěn Xiǎolóngbāo','蜜汁蒸凤爪':'Mìzhī Zhēng Fèngzhǎo',
   '鲜虾腐皮卷':'Xiānxiā Fǔpí Juǎn','米饭':'Mǐfàn','白灼虾':'Báizhuó Xiā','黑叉烧':'Hēi Chāshāo',
+  '聚龙湾太古里':'Jùlóngwān Tàigǔlǐ','国金天地':'Guójīn Tiāndì','广州国际金融中心 国金天地':'Guǎngzhōu Guójì Jīnróng Zhōngxīn Guójīn Tiāndì','西城都荟':'Xīchéng Dūhuì','荔湾广场':'Lìwān Guǎngchǎng',
   '陶陶居':'Táotáojū','费大厨辣椒炒肉':'Fèi Dàchú Làjiāo Chǎoròu','炳胜公馆':'Bǐngshèng Gōngguǎn','袁记云饺':'Yuánjì Yúnjiǎo',
   '银记肠粉':'Yínjì Chángfěn','御宝轩':'Yùbǎo Xuān','江':'Jiāng','泰安门':'Tài\'ān Mén','丽轩':'Lì Xuān','广御轩':'Guǎngyù Xuān','愉粤轩':'Yúyuè Xuān',
   '喜茶':'Xǐchá','霸王茶姬':'Bàwáng Chájī','来回咖啡':'Láihuí Kāfēi','阿嬷手作':'Āmā Shǒuzuò','南信牛奶甜品专家':'Nánxìn Niúnǎi Tiánpǐn Zhuānjiā',
@@ -518,9 +525,9 @@ const P = [
   /* 몰 */
   {id:'grandview',cat:'mall',area:'tianhe',ko:'정가광장',zh:'正佳广场',tags:[],price:null,note:'톈허 대표 몰. 중저가 위주'},
   {id:'parc',cat:'mall',area:'tianhe',ko:'톈환 파크센트럴',zh:'天环广场',tags:[],price:null,note:'야외 공원형. 正佳 바로 옆, 걸어서'},
-  {id:'teemall',cat:'mall',area:'tianhe',ko:'톈허청',zh:'天河城',tags:['추천'],price:null,note:'正佳 바로 옆. 중저가 브랜드 많아 적당한 가격대 구경용'},
-  {id:'taikoo',cat:'mall',area:'tianhe',ko:'타이쿠후이',zh:'太古汇',tags:[],price:null,note:'럭셔리 위주라 식당가·마트(Ole\')만. 正佳에서 걸어서 15분'},
-  {id:'k11',cat:'mall',area:'zhujiang',ko:'K11',zh:'K11购物艺术中心',tags:[],price:null,note:'디자인·라이프스타일 브랜드'},
+  {id:'teemall',cat:'mall',area:'tianhe',ko:'톈허청',zh:'天河城',tags:['추천'],price:null,note:'正佳 바로 옆. 중저가 브랜드 많아 적당한 가격대 구경용. 2025년 지하 1층 새 단장'},
+  {id:'taikoo',cat:'mall',area:'tianhe',ko:'타이쿠후이',zh:'太古汇',tags:[],price:null,note:'광저우에서 명품이 가장 많이 모인 몰. 식당가·Ole\' 마트도. 正佳에서 걸어서 15분'},
+  {id:'k11',cat:'mall',area:'zhujiang',ko:'K11',zh:'K11购物艺术中心',tags:[],price:null,note:'太古汇 다음가는 명품 몰. 2026년 8월 Brunello Cucinelli·BALMAIN·TOD\'S·Louboutin·Yohji Yamamoto 광저우 첫 매장. 아트 전시도'},
   {id:'miniso',cat:'mall',area:'tianhe',ko:'미니소 랜드',zh:'MINISO LAND 名创优品',gaode:'名创优品 正佳广场',tags:['영상'],price:null,note:'正佳广场 안 2층 규모 대형 매장'},
 
   /* 옷·빈티지 */
@@ -558,7 +565,7 @@ const BR = {
   wassup:['东山口 일대','정확한 위치는 고덕'], side:['东山口 일대','정확한 위치는 고덕'], monmon:['东山口 일대','정확한 위치는 고덕'], liuyun:['','天河区 六运小区'],
   ole:['太古汇점','天河路383号 太古汇'], hema:['체인 · 가까운 지점','고덕 검색']
 };
-BR.wanling=['','天河路230号']; BR.huachenghui=['','珠江新城 花城广场 지하']; BR.gaodeland=['','珠江新城 花城大道85号']; BR.igc=['','珠江新城 兴民路222号']; BR.beijinglu=['','越秀区 北京路'];
+BR.wanling=['','天河路230号']; BR.huachenghui=['','珠江新城 花城广场 지하']; BR.gaodeland=['','珠江新城 花城大道85号']; BR.igc=['','珠江新城 兴民路222号']; BR.beijinglu=['','越秀区 北京路']; BR.julong=['','荔湾区 白鹅潭 일대']; BR.ifc=['','珠江新城 珠江西路5号 (확인 필요)']; BR.xicheng=['','荔湾区 黄沙 일대']; BR.liwanplaza=['','荔湾区 上下九 근처'];
 Object.keys(BR).forEach(id=>{ const p = P.find(x=>x.id===id); if(p){ if(BR[id][0]) p.br = BR[id][0]; if(BR[id][1]) p.baddr = BR[id][1]; } });
 
 
@@ -571,13 +578,14 @@ const EN = {hotel:'Guangzhou Marriott Hotel Baiyun',airport:'Baiyun Internationa
   cruise:'Pearl River Night Cruise',aquarium:'Grandview Aquarium',massage:'Foot Massage',
   grandview:'Grandview Mall',parc:'Parc Central',teemall:'Teemall',taikoo:'Taikoo Hui',k11:'K11 Art Mall',miniso:'MINISO LAND',
   wanling:'Wanling Plaza',huachenghui:'Mall of the World',gaodeland:'Gaode Land Plaza',igc:'IGC Mall',beijinglu:'Beijing Road Pedestrian Street',
+  julong:'Julong Bay Taikoo Li',ifc:'Guangzhou IFC Mall',xicheng:'Xicheng Duhui Mall',liwanplaza:'Liwan Plaza',
   ole:"Ole' Supermarket",hema:'Freshippo (Hema)'};
 /* 어디 안에 있는지 한 줄 */
 const LOC = {taotaoju:'正佳广场 몰 안 (옛 자료 6층)',feidachu:'正佳广场 몰 안',bingsheng:'首府大厦 빌딩 5층 (주장신청)',hongtufu:'화이트스완 호텔 2층 (사몐)',
   yuanji:'길가 작은 가게 · 체인',yinji:'上下九 보행가 근처 노포',imperial:'위치 확인 필요',taian:'위치 확인 필요',lingnan:'위치 확인 필요',xinji:'위치 확인 필요',
   jiang:'만다린 오리엔탈 호텔 안 (太古汇 옆)',laiheen:'리츠칼튼 호텔 안 (주장신청)',yuyue:'화원 호텔(花园酒店) 안',
   heytea:'몰마다 있음 · 正佳·天环·太古汇 몰 안',chagee:'몰마다 있음 · 正佳·天环·太古汇 몰 안',ama:'太古汇 몰 안',laihui:'六运小区 골목',jpg:'六运小区 골목',nanxin:'上下九 근처 길가 노포',
-  aquarium:'正佳广场 몰 안',miniso:'正佳广场 몰 안 (2개 층)',ole:'太古汇 몰 안',huachenghui:'花城广场 지하',wanling:'正佳广场 바로 옆',k11:'周大福金融中心 빌딩 아래'};
+  aquarium:'正佳广场 몰 안',miniso:'正佳广场 몰 안 (2개 층)',ole:'太古汇 몰 안',huachenghui:'花城广场 지하',julong:'강변 야외형 몰 (沙面 근처)',ifc:'广州国际金融中心 빌딩 아래',xicheng:'黄沙역 근처',liwanplaza:'上下九 보행가 옆',wanling:'正佳广场 바로 옆',k11:'周大福金融中心 빌딩 아래'};
 /* 추천 메뉴: [중국어, 한국어, 병음(비우면 자동), 표시(s 새우·k 입맛 추천·x 호불호·c 있으면·r 셰프 추천), 영어, 가격] */
 const MENU = {
   taotaoju:[['陶陶居大虾饺','새우 하가우 · 큰 통새우','','sk','Signature Shrimp Dumpling (Har Gow)'],['鲜虾肠粉','새우 창펀 · 간장 소스','','skc','Shrimp Rice Noodle Roll'],
@@ -611,12 +619,21 @@ P.push(
   {id:'huachenghui',cat:'mall',area:'zhujiang',ko:'화청후이',zh:'花城汇',tags:['추천'],price:null,note:'花城广场 지하 쇼핑몰. 중저가 브랜드·식당 많음. 야경 보기 전에 들르기 좋음'},
   {id:'gaodeland',cat:'mall',area:'zhujiang',ko:'가오더 즈디 광장',zh:'高德置地广场',tags:['추천'],price:null,note:'중저가 패션 브랜드 많음. K11과 가까움'},
   {id:'igc',cat:'mall',area:'zhujiang',ko:'IGC 톈후이 광장',zh:'天汇广场 IGC',gaode:'天汇广场',tags:[],price:null,note:'라이프스타일 몰·식당가'},
-  {id:'beijinglu',cat:'mall',area:'liwan',ko:'베이징루 보행가',zh:'北京路步行街',tags:[],price:null,note:'옛 거리 보행자 쇼핑가. 중저가 브랜드·간식. 리완 가는 날 같이'}
+  {id:'beijinglu',cat:'mall',area:'liwan',ko:'베이징루 보행가',zh:'北京路步行街',tags:[],price:null,note:'옛 거리 보행자 쇼핑가. 중저가 브랜드·간식. 리완 가는 날 같이'},
+  {id:'julong',cat:'mall',area:'liwan',ko:'쥐룽완 타이쿠리',zh:'聚龙湾太古里',tags:['추천'],price:null,note:'강변 야외형 명품·라이프스타일 몰. 2025년 말 1차 개장, 2027년까지 단계별로 여는 중이라 열린 구역 확인. 沙面 가는 날 같이'},
+  {id:'ifc',cat:'mall',area:'zhujiang',ko:'국금천지 IFC',zh:'国金天地',gaode:'广州国际金融中心 国金天地',tags:[],price:null,note:'중고가 브랜드·식당. 花城广场과 가까움 (위치 확인 필요)'},
+  {id:'xicheng',cat:'mall',area:'liwan',ko:'시청두후이',zh:'西城都荟',tags:[],price:null,note:'중저가 브랜드·식당. 沙面·리완 가는 날 점심과 쇼핑 (위치 확인 필요)'},
+  {id:'liwanplaza',cat:'mall',area:'liwan',ko:'리완 광장',zh:'荔湾广场',tags:[],price:null,note:'액세서리·소품 도매풍 몰. 싸고 구경 재미'}
 );
-P.forEach(p=>{ if(BR[p.id]){ if(BR[p.id][0]) p.br = BR[p.id][0]; if(BR[p.id][1]) p.baddr = BR[p.id][1]; } if(EN[p.id]) p.en = EN[p.id]; if(LOC[p.id]) p.loc = LOC[p.id]; if(MENU[p.id]) p.menu = MENU[p.id]; if(p.cat==='vintage') p.hidden = true; });
+/* 몰 등급 */
+const TIER = {taikoo:'럭셔리',k11:'럭셔리',julong:'럭셔리',parc:'중고가',wanling:'중고가',ifc:'중고가',igc:'중고가',
+  grandview:'중저가',teemall:'중저가',huachenghui:'중저가',gaodeland:'중저가',beijinglu:'중저가',xicheng:'중저가',liwanplaza:'중저가',miniso:'생활용품'};
+P.forEach(p=>{ if(TIER[p.id]) p.tier = TIER[p.id]; if(BR[p.id]){ if(BR[p.id][0]) p.br = BR[p.id][0]; if(BR[p.id][1]) p.baddr = BR[p.id][1]; } if(EN[p.id]) p.en = EN[p.id]; if(LOC[p.id]) p.loc = LOC[p.id]; if(MENU[p.id]) p.menu = MENU[p.id]; if(p.cat==='vintage') p.hidden = true; });
 
 const COURSES = [
   {t:'톈허 몰 하루',why:'걸어서 이어지는 몰들. 얌차로 시작',ids:['taotaoju','grandview','wanling','teemall','parc','taikoo']},
+  {t:'명품 몰 코스',why:'광저우 명품 1·2위 몰. 太古汇 → 택시 10분 → K11',ids:['taikoo','jiang','k11','ifc']},
+  {t:'리완 강변 몰',why:'沙面 산책하고 새로 연 강변 몰까지',ids:['shamian','julong','xicheng','liwanplaza']},
   {t:'주장신청 몰 저녁',why:'K11부터 지하몰까지 걷고 야경으로 마무리',ids:['k11','gaodeland','huachenghui','huacheng']},
   {t:'옛 광저우 반나절',why:'지하철 1호선 한 줄로 이어지는 동선',ids:['shamian','yinji','yongqing','nanxin','chenjiaci']},
   {t:'야경 코스',why:'주장신청에서 걸어서 이어짐',ids:['k11','huacheng','cruise']},
@@ -655,9 +672,10 @@ function seed(){
       ]},
       {id:uid(),items:[
         it('10:30','shamian'),
-        it('12:00','yinji',{memo:'새우 창펀'}),
-        it('12:45','nanxin',{memo:'双皮奶'}),
-        it('13:30','yongqing'),
+        it('11:15','julong',{memo:'열린 구역만'}),
+        it('12:30','yinji',{memo:'새우 창펀'}),
+        it('13:15','nanxin',{memo:'双皮奶'}),
+        it('14:00','yongqing'),
         it('15:00','beijinglu',{memo:'보행가 쇼핑'}),
         it('18:00','huachenghui',{memo:'저녁은 지하몰 식당가에서'}),
         it('20:30','cruise',{memo:'또는 花城广场 산책'})
@@ -796,7 +814,7 @@ const ART = {
   bed:['............','K...........','K.WWW.......','KKWWWKKKKKKK','KLLLLLLLLLLK','KKKKKKKKKKKK','K..........K'],
   plane:['.....KK.....','.....KK.....','....KSSK....','KKKKSSSSKKKK','.KKSSSSSSKK.','.....SS.....','....KSSK....','....KKKK....']
 };
-const PLACE_ART = {beijinglu:'shop',hongtufu:'dimsum',taotaoju:'dimsum',feidachu:'chili',bingsheng:'goose',yuanji:'bowl',yinji:'roll',heytea:'tea',chagee:'tea',ama:'ice',laihui:'coffee',jpg:'coffee',nanxin:'pudding',
+const PLACE_ART = {liwanplaza:'shop',beijinglu:'shop',hongtufu:'dimsum',taotaoju:'dimsum',feidachu:'chili',bingsheng:'goose',yuanji:'bowl',yinji:'roll',heytea:'tea',chagee:'tea',ama:'ice',laihui:'coffee',jpg:'coffee',nanxin:'pudding',
   shamian:'house',yongqing:'gate',sxj:'gate',chenjiaci:'gate',tower:'tower',huacheng:'tower',cruise:'boat',aquarium:'fish',massage:'foot',miniso:'shop',hotel:'bed',airport:'plane',ole:'cart',hema:'cart'};
 const CAT_ART = {food:'bowl',cafe:'coffee',dessert:'pudding',sight:'house',fun:'boat',mall:'bag',vintage:'shirt',mart:'cart',base:'bed'};
 /* 내 사진은 IndexedDB에 (localStorage는 같은 주소의 다른 앱들과 5MB를 나눠 써서 쓰지 않음) */
@@ -880,6 +898,7 @@ const LL = {
   dongshankou:[113.2962,23.1238], badmarket:[113.2952,23.1248], labelhood:[113.2978,23.1228], wassup:[113.2946,23.1230], side:[113.2970,23.1252], monmon:[113.2984,23.1242],
   yuyue:[113.2850,23.1430],
   wanling:[113.3298,23.1332], huachenghui:[113.3248,23.1182], gaodeland:[113.3262,23.1212], igc:[113.3335,23.1190], beijinglu:[113.2690,23.1255],
+  julong:[113.2372,23.1168], ifc:[113.3222,23.1208], xicheng:[113.2458,23.1152], liwanplaza:[113.2538,23.1207],
   shamian:[113.2445,23.1082], hongtufu:[113.2438,23.1068], yongqing:[113.2440,23.1215], sxj:[113.2512,23.1190], yinji:[113.2497,23.1196], nanxin:[113.2527,23.1197], chenjiaci:[113.2530,23.1265]
 };
 const CAT_C = {food:'#F6B8A0',cafe:'#E3CBA8',dessert:'#F7C6D9',sight:'#B0DBF0',fun:'#CDBDF2',mall:'#FFF6B8',vintage:'#A5E6BA',mart:'#D6E9A6',base:'#0B0A05'};
@@ -1386,12 +1405,13 @@ function addToDay(id, j, fromPicker){
 }
 
 /* ───────── 장소 탭 ───────── */
-let cat='all', area='all';
+let cat='all', area='all', tier='all';
 function placeCard(p){
   const u = usedIn(p.id);
   const badges = [];
   if(p.mich) badges.push('<span class="bd mich">미슐랭 '+p.mich+'</span>');
   (p.tags||[]).forEach(t=>badges.push('<span class="bd ac">'+(t==='영상'?'유튜브 영상':t)+'</span>'));
+  if(p.tier) badges.push('<span class="bd tier t-'+(p.tier==='럭셔리'?'lux':p.tier==='중고가'?'mid':'low')+'">'+p.tier+'</span>');
   badges.push('<span class="bd cat" style="--c:'+CAT_C[p.cat]+(p.cat==='base'?';color:#FFF6B8':'')+'">'+CATS[p.cat]+'</span>');
   badges.push('<span class="bd">'+AREAS[p.area].short+'</span>');
   if(p.closed) badges.push('<span class="bd warn">'+p.closed.map(d=>DOW[d]).join('·')+'요일 휴무 많음</span>');
@@ -1451,13 +1471,15 @@ function renderPlaces(){
     return '<button class="chip'+(cat===c?' on':'')+'" onclick="cat=\''+c+'\';renderPlaces()">'+lb+'</button>';
   }).join('');
   $('#areaChips').innerHTML = ['all','tianhe','zhujiang','liwan','any','etc'].map(a=>'<button class="chip'+(area===a?' on':'')+'" onclick="area=\''+a+'\';renderPlaces()">'+(a==='all'?'모든 지역':AREAS[a].short)+'</button>').join('');
+  $('#tierChips').innerHTML = cat==='mall' ? ['all','럭셔리','중고가','중저가'].map(t=>'<button class="chip'+(tier===t?' on':'')+'" onclick="tier=\''+t+'\';renderPlaces()">'+(t==='all'?'모든 등급':t)+'</button>').join('') : '';
   const q = $('#q').value.trim().toLowerCase();
   const list = allPlaces().filter(p=>{
+    if(cat==='mall' && tier!=='all' && p.tier!==tier) return false;
     if(cat==='fav' ? !S.fav[p.id] : cat==='been' ? !S.visited[p.id] : (cat!=='all' && p.cat!==cat)) return false;
     if(cat==='all' && p.cat==='base') return false;
     if(area!=='all' && p.area!==area) return false;
     if(q){
-      const hay = (p.ko+' '+p.zh+' '+(p.en||'')+' '+(p.loc||'')+' '+(p.br||'')+' '+(p.baddr||p.addr||'')+' '+(p.note||'')+' '+(p.menu||[]).map(m=>m.filter(v=>typeof v==='string').join(' ')).join(' ')+' '+(p.mich?'미슐랭':'')).toLowerCase();
+      const hay = (p.ko+' '+p.zh+' '+(p.en||'')+' '+(p.tier||'')+' '+(p.loc||'')+' '+(p.br||'')+' '+(p.baddr||p.addr||'')+' '+(p.note||'')+' '+(p.menu||[]).map(m=>m.filter(v=>typeof v==='string').join(' ')).join(' ')+' '+(p.mich?'미슐랭':'')).toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
