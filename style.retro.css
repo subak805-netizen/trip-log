@@ -343,3 +343,41 @@ nav.tabs button.on{color:var(--ink);background:var(--mint);border-color:var(--in
 .mn-t{font-size:13.5px;margin-top:4px;white-space:pre-line}
 .mynote.empty .mn-t{font-size:12.5px;color:var(--t2)}
 .it .meta span.mnote{background:var(--yellow);font-family:var(--body);font-weight:600}
+
+/* 여행 목록 */
+body:not(.in-trip) nav.tabs{display:none}
+body:not(.in-trip) .app{padding-bottom:40px}
+body:not(.in-trip) #backBtn{display:none}
+.backbtn{font-family:var(--px);font-size:12px;border:2px solid var(--ink);background:var(--paper);padding:3px 9px;box-shadow:2px 2px 0 var(--ink);margin-bottom:10px}
+.backbtn:active{transform:translate(2px,2px);box-shadow:none}
+.tlist{display:flex;flex-direction:column;gap:14px}
+.tc-wrap{position:relative}
+.tcard{display:block;width:100%;text-align:left;background:var(--paper);border:2.5px solid var(--ink);box-shadow:var(--sh-lg);padding:14px 16px 12px}
+.tcard:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--ink)}
+.tcard.done{background:var(--paper2)}
+.tc-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding-right:40px}
+.tc-en{font-family:var(--en);font-size:8.5px;color:var(--t3);letter-spacing:.06em}
+.tc-name{font-family:var(--px);font-size:22px;margin-top:4px}
+.tc-sub{font-size:13px;color:var(--t2);margin-top:3px}
+.tc-dd{flex:0 0 auto;font-family:var(--px);font-size:12px;background:var(--yellow);border:1.5px solid var(--ink);padding:1px 6px;white-space:nowrap}
+.tcard.done .tc-dd{background:var(--ink);color:var(--mint)}
+.tc-stats{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tc-stats span{font-family:var(--px);font-size:11px;border:1.5px solid var(--ink);background:var(--mint-t);padding:0 6px}
+.tc-more{position:absolute;top:10px;right:10px;font-family:var(--px);font-size:14px;border:2px solid var(--ink);background:var(--paper);width:34px;height:28px;line-height:1}
+/* 위치 찾기 */
+.geo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px;color:var(--t2)}
+.geo button{font-family:var(--px);font-size:11.5px;border:1.5px solid var(--ink);background:var(--paper);padding:2px 8px;box-shadow:2px 2px 0 var(--ink);color:var(--ink)}
+#geoRes .pick{margin-top:8px}
+/* 실제 지도 */
+#lmap{height:min(68vh,460px);width:100%;background:#F5F3EE}
+.lpin{position:relative}
+.lp{position:absolute;left:0;bottom:6px;transform:translateX(-50%);font-family:var(--px);font-size:13px;line-height:1;padding:6px 7px;border:2.5px solid var(--ink);box-shadow:3px 3px 0 var(--ink);white-space:nowrap}
+.lp::after{content:"";position:absolute;left:50%;bottom:-8px;transform:translateX(-50%);border:5px solid transparent;border-top:6px solid var(--ink)}
+.leaflet-tooltip.ltip{background:var(--paper);border:1.5px solid var(--ink);border-radius:0;box-shadow:none;font-weight:800;font-size:11.5px;padding:1px 5px;color:var(--ink)}
+.leaflet-tooltip.ltip::before{display:none}
+.leaflet-container{font-family:var(--body)}
+.leaflet-bar a{border-radius:0!important;color:var(--ink)!important}
+.leaflet-touch .leaflet-bar{border:2px solid var(--ink)!important;border-radius:0!important;box-shadow:2px 2px 0 var(--ink)}
+
+#lmap .leaflet-tile-pane{filter:grayscale(.75) brightness(1.06) contrast(.88);opacity:.8}
+.leaflet-control-attribution{font-size:10px}
