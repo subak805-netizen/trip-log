@@ -313,3 +313,23 @@ nav.tabs button.on{color:var(--ink);background:var(--mint);border-color:var(--in
 .bd.tier.t-lux{background:var(--ink);color:var(--yellow)}
 .bd.tier.t-mid{background:var(--sky)}
 .bd.tier.t-low{background:var(--mint-t)}
+
+/* 몰 안 갈 곳 */
+.spots{margin-top:12px;border:2px solid var(--ink);background:var(--paper)}
+.sp-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:7px 10px;background:var(--yellow);border-bottom:2px solid var(--ink);flex-wrap:wrap}
+.sp-h b{font-family:var(--px);font-weight:400;font-size:13px}
+.sp-h span{font-size:11.5px;color:var(--t2)}
+.spot{display:flex;gap:8px;align-items:flex-start;padding:8px 10px}
+.spot+.spot{border-top:1.5px dashed var(--ink)}
+.sk{flex:0 0 auto;font-family:var(--px);font-size:10.5px;border:1.5px solid var(--ink);padding:0 4px;line-height:1.5;margin-top:2px;white-space:nowrap}
+.sk-food{background:#F6B8A0}.sk-cafe{background:#E3CBA8}.sk-sweet{background:var(--pink)}.sk-wear{background:var(--mint)}.sk-sight{background:var(--sky)}
+.sz{font-size:14px;font-weight:700}
+.sfl{font-family:var(--px);font-size:10.5px;font-weight:400;background:var(--paper2);border:1px solid var(--ink);padding:0 4px;white-space:nowrap}
+.sold{font-family:var(--px);font-size:10px;font-weight:400;color:var(--t2);border:1px dashed var(--t2);padding:0 3px;white-space:nowrap}
+.sen{font-size:12px;font-weight:600;color:var(--ink);letter-spacing:0}
+.sko{font-size:12.5px;color:var(--t2)}
+.sbtn{display:flex;flex-direction:column;gap:4px;flex:0 0 auto}
+.sbtn button{font-family:var(--px);font-size:10.5px;border:1.5px solid var(--ink);background:var(--paper);padding:1px 6px;white-space:nowrap}
+.sbtn button.del{color:var(--red);border-color:var(--red)}
+.sp-f{display:flex;gap:8px;padding:8px 10px;border-top:2px solid var(--ink);background:var(--paper2);flex-wrap:wrap}
+.sp-f button{font-family:var(--px);font-size:12px;border:2px solid var(--ink);background:var(--paper);padding:3px 9px;box-shadow:2px 2px 0 var(--ink)}
