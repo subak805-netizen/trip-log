@@ -333,3 +333,13 @@ nav.tabs button.on{color:var(--ink);background:var(--mint);border-color:var(--in
 .sbtn button.del{color:var(--red);border-color:var(--red)}
 .sp-f{display:flex;gap:8px;padding:8px 10px;border-top:2px solid var(--ink);background:var(--paper2);flex-wrap:wrap}
 .sp-f button{font-family:var(--px);font-size:12px;border:2px solid var(--ink);background:var(--paper);padding:3px 9px;box-shadow:2px 2px 0 var(--ink)}
+
+/* 내 메모 */
+.mynote{margin-top:10px;background:var(--yellow);border:2px solid var(--ink);padding:8px 10px}
+.mynote.empty{background:var(--paper2);border-style:dashed}
+.mn-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mn-h b{font-family:var(--px);font-weight:400;font-size:12.5px}
+.mn-h button{font-family:var(--px);font-size:11.5px;border:1.5px solid var(--ink);background:var(--paper);padding:1px 8px;box-shadow:2px 2px 0 var(--ink)}
+.mn-t{font-size:13.5px;margin-top:4px;white-space:pre-line}
+.mynote.empty .mn-t{font-size:12.5px;color:var(--t2)}
+.it .meta span.mnote{background:var(--yellow);font-family:var(--body);font-weight:600}

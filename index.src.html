@@ -495,6 +495,7 @@ let S;
 try{ S = JSON.parse(localStorage.getItem(KEY)) }catch(e){}
 if(!S || !S.days) S = seed();
 if(!S.visited) S.visited = {};
+if(!S.notes) S.notes = {};
 if(!S._m1){ S.visited.hongtufu = true; S._m1 = 1; try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} }
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){} }
 
@@ -1059,6 +1060,7 @@ function renderDays(){
       const p = x.placeId && place(x.placeId);
       const zh = itemZh(x);
       const metas = [];
+      if(p && S.notes[p.id]) metas.push('<span class="mnote">메모 · '+esc(S.notes[p.id].split('\n')[0].slice(0,24))+(S.notes[p.id].length>24?'…':'')+'</span>');
       if(p && p.cat==='mall' && spotsOf(p.id).length) metas.push('<span class="ac">몰 안 갈 곳 '+spotsOf(p.id).length+'</span>');
       if(p && S.visited[p.id]) metas.push('<span class="been">가본 곳</span>');
       if(p && p.mich) metas.push('<span class="ac">미슐랭 '+p.mich+'</span>');
@@ -1255,6 +1257,7 @@ function placeCard(p){
     + (p.note?'<div class="note">'+gl(p.note)+'</div>':'')
     + (p.menu&&p.menu.length?'<div class="menu">'+sortMenu(p.menu).map(m=>'<button onclick="copy(\''+jsq(m[0])+'\')"><div style="min-width:0"><div class="zh">'+esc(m[0])+(m[5]?' <span class="mp">¥'+m[5]+'</span>':'')+'</div>'
       +pyLine(m[0],m[2]?{py:m[2]}:null)+(m[4]?'<div class="men">'+esc(m[4])+'</div>':'')+(m[1]?'<div class="ko">'+esc(m[1])+'</div>':'')+menuTags(m[3])+'</div><span class="cp">복사</span></button>').join('')+'</div>':'')
+    + noteBox(p)
     + mallSpots(p)
     + links(p)
     + '<div class="acts"><button onclick="copy(\''+jsq(p.gaode||p.zh)+'\')">고덕 검색어 복사</button><button class="ac" onclick="openAddTo(\''+p.id+'\')">일정에 넣기</button>'
@@ -1305,13 +1308,32 @@ function renderPlaces(){
     if(cat==='all' && p.cat==='base') return false;
     if(area!=='all' && p.area!==area) return false;
     if(q){
-      const hay = (p.ko+' '+p.zh+' '+(p.en||'')+' '+spotsOf(p.id).map(x=>x.zh+' '+(x.ko||'')+' '+(x.en||'')).join(' ')+' '+(p.tier||'')+' '+(p.loc||'')+' '+(p.br||'')+' '+(p.baddr||p.addr||'')+' '+(p.note||'')+' '+(p.menu||[]).map(m=>m.filter(v=>typeof v==='string').join(' ')).join(' ')+' '+(p.mich?'미슐랭':'')).toLowerCase();
+      const hay = (p.ko+' '+p.zh+' '+(p.en||'')+' '+(S.notes[p.id]||'')+' '+spotsOf(p.id).map(x=>x.zh+' '+(x.ko||'')+' '+(x.en||'')).join(' ')+' '+(p.tier||'')+' '+(p.loc||'')+' '+(p.br||'')+' '+(p.baddr||p.addr||'')+' '+(p.note||'')+' '+(p.menu||[]).map(m=>m.filter(v=>typeof v==='string').join(' ')).join(' ')+' '+(p.mich?'미슐랭':'')).toLowerCase();
       if(!hay.includes(q)) return false;
     }
     return true;
   });
   $('#placeCnt').textContent = list.length+'곳 · 가격은 1인 기준 대략, 1위안 = '+(+S.rate||190)+'원';
   $('#placeList').innerHTML = list.map(placeCard).join('') || '<div class="empty-day">해당하는 장소가 없어요</div>';
+}
+/* 내 메모 (먹어보고 싶은 메뉴 등) */
+function noteBox(p){
+  const n = S.notes[p.id];
+  return '<div class="mynote'+(n?'':' empty')+'"><div class="mn-h"><b>내 메모</b><button onclick="openNote(\''+p.id+'\')">'+(n?'고치기':'메모 쓰기')+'</button></div>'
+    + (n ? '<div class="mn-t">'+esc(n)+'</div>' : '<div class="mn-t">먹어보고 싶은 메뉴, 살 것, 갈 시간 등을 적어 두세요</div>')+'</div>';
+}
+function openNote(id){
+  const p = place(id);
+  openSheet(p.ko+' · 내 메모',
+    '<div class="fld"><label>메모</label><textarea id="noteT" style="min-height:140px" placeholder="예: 새우 하가우 꼭 먹기 / 2인분이면 충분 / 저녁 6시 전에 가기">'+esc(S.notes[id]||'')+'</textarea></div>'
+    +'<div class="btns" style="margin:4px 0 0"><button class="btn ac" onclick="saveNote(\''+id+'\')">저장</button>'
+    +(S.notes[id]?'<button class="btn danger" onclick="S.notes[\''+id+'\']=\'\';delete S.notes[\''+id+'\'];save();renderAll();closeSheet();toast(\'메모를 지웠어요\')">메모 지우기</button>':'')+'</div>');
+  setTimeout(()=>{ const t=$('#noteT'); if(t) t.focus(); }, 50);
+}
+function saveNote(id){
+  const v = $('#noteT').value.trim();
+  if(v) S.notes[id] = v; else delete S.notes[id];
+  save(); renderAll(); closeSheet(); toast(v ? '메모를 저장했어요' : '메모를 지웠어요');
 }
 function toggleVisited(id){
   if(S.visited[id]) delete S.visited[id]; else S.visited[id] = true;
