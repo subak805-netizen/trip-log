@@ -154,9 +154,15 @@ header.top{padding:18px 20px 12px;display:flex;align-items:flex-end;justify-cont
 .pc .price span{color:var(--t2)}
 .pc .note{font-size:13px;color:var(--t2);margin-top:6px}
 .menu{margin-top:10px;display:flex;flex-direction:column;background:var(--paper2);border:2px solid var(--ink)}
-.menu button{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 12px;text-align:left;font-size:14px}
-.menu button+button{border-top:1.5px dashed var(--ink)}
-.menu button:active{background:var(--yellow)}
+.menu .mrow{display:flex;align-items:center;gap:10px;padding:8px 12px;font-size:14px}
+.menu .mrow+.mrow{border-top:1.5px dashed var(--ink)}
+.menu .mtext{flex:1;min-width:0;cursor:pointer}
+.menu .mtext:active{background:var(--yellow)}
+.mph{flex:0 0 58px;width:58px;height:58px;border:2px dashed var(--ink);background:var(--paper);font-family:var(--px);font-size:10.5px;line-height:1.35;color:var(--t2);padding:0}
+.mph.has{border-style:solid;overflow:hidden;box-shadow:2px 2px 0 var(--ink)}
+.mph img{width:100%;height:100%;object-fit:cover;display:block}
+.mph:active{transform:translate(2px,2px);box-shadow:none}
+.dropon{outline:3px dashed var(--ink)!important;outline-offset:2px;background:var(--mint)!important}
 .menu .ko{font-size:12px;color:var(--t2)}
 .menu .cp{font-family:var(--px);font-size:11px;flex:0 0 auto;border:1.5px solid var(--ink);background:var(--paper);padding:1px 6px}
 .links{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
@@ -381,3 +387,43 @@ body:not(.in-trip) #backBtn{display:none}
 
 #lmap .leaflet-tile-pane{filter:grayscale(.75) brightness(1.06) contrast(.88);opacity:.8}
 .leaflet-control-attribution{font-size:10px}
+
+/* 일정 끌어다 놓기 */
+.it .tcol{display:flex;flex-direction:column;align-items:flex-start;gap:8px}
+.grip{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border:2px solid var(--ink);background:var(--paper2);cursor:grab;touch-action:none}
+.grip:active{cursor:grabbing;background:var(--mint)}
+.it.dragging{opacity:.3}
+.ghost{position:fixed;z-index:80;pointer-events:none;opacity:.92;transform:rotate(-1.5deg);box-shadow:6px 6px 0 var(--ink)!important;margin:0!important}
+.dropline{height:0;border-top:4px solid var(--ink);margin:6px 0;position:relative}
+.dropline::before{content:"여기에 넣기";position:absolute;left:0;top:-14px;font-family:var(--px);font-size:11px;background:var(--mint);border:1.5px solid var(--ink);padding:0 6px}
+.dropzone{position:fixed;left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:70;display:none;text-align:center;font-family:var(--px);font-size:14px;
+  padding:16px;background:var(--paper);border:2.5px dashed var(--red);color:var(--red)}
+body.dragging-item .dropzone{display:block}
+.dropzone.hot{background:var(--red);color:var(--paper);border-style:solid}
+/* 사진 크게 꽉 차게 */
+.it{grid-template-columns:52px minmax(0,1fr) auto}
+.it .th{width:clamp(84px,24vw,132px);height:auto;min-height:84px;align-self:stretch;box-shadow:none}
+.it .th img{position:absolute;inset:0}
+.thbtn .th{box-shadow:2px 2px 0 var(--ink)}
+/* 장소 타일 2열 */
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ptile{display:flex;flex-direction:column;gap:3px;text-align:left;background:var(--paper);border:2px solid var(--ink);box-shadow:2px 2px 0 var(--ink);padding:6px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;min-width:0}
+.ptile .th{width:100%;height:auto;aspect-ratio:4/3;box-shadow:none;border-width:1.5px}
+.ptile .th img{position:absolute;inset:0}
+.ptile b{font-size:13px;line-height:1.25;margin-top:2px}
+.ptile .zh{font-size:11.5px;color:var(--t2)}
+.ptile .used{align-self:flex-start}
+.ptile:active{transform:translate(2px,2px);box-shadow:none}
+.palette{display:none}
+@media(min-width:1000px){
+  body.in-trip .app{max-width:1240px}
+  #pg-plan.on{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:22px;align-items:start}
+  .palette{display:block;position:sticky;top:76px;max-height:calc(100vh - 96px);overflow-y:auto;background:var(--paper2);border:2.5px solid var(--ink);box-shadow:var(--sh-lg);padding:12px;margin:18px 20px 0 0}
+  .palette.hot{background:var(--red);}
+  .palette.hot *{opacity:.55}
+  body.dragging-item .dropzone{display:none}
+  #pg-place.on,#pg-map.on,#pg-rec.on,#pg-info.on{max-width:760px;margin:0 auto}
+}
+.pal-h{display:flex;flex-direction:column;gap:2px;margin-bottom:8px}
+.pal-h b{font-family:var(--px);font-weight:400;font-size:14px}
+.pal-h span{font-size:12px;color:var(--t2)}

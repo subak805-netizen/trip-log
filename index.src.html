@@ -18,6 +18,7 @@ __STYLE__
   <section class="page on" id="pg-home"><div id="homeView"></div></section>
 
   <section class="page" id="pg-plan">
+   <div class="plan-main">
     <div class="sec">숙소 (고정)</div>
     <div class="pad" id="hotelBox"></div>
     <div class="sec">항공편</div>
@@ -25,7 +26,10 @@ __STYLE__
     <div class="sec" style="padding-top:22px">날짜별 일정</div>
     <div class="seg" id="daySeg"></div>
     <div id="dayView"></div>
+   </div>
+   <aside class="palette" id="palette"></aside>
   </section>
+  <div class="dropzone" id="dropzone">여기에 놓으면 이 날 일정에서 빼기</div>
 
   <!-- 장소 -->
   <section class="page" id="pg-place">
@@ -621,6 +625,7 @@ function pix(rows, pal, sc){
   return '<svg class="px-i" width="'+w*sc+'" height="'+h*sc+'" viewBox="0 0 '+w+' '+h+'" shape-rendering="crispEdges" aria-hidden="true">'+r+'</svg>';
 }
 const PXI = {
+  grip:['KK.KK','KK.KK','.....','KK.KK','KK.KK','.....','KK.KK','KK.KK'],
   plan:['.K....K.','KKKKKKKK','K......K','K.K.K..K','K......K','K.K.K..K','K......K','KKKKKKKK'],
   place:['..KKKK..','.K....K.','K..KK..K','K..KK..K','.K....K.','..K..K..','...KK...','........'],
   map:['KKKKKKKK','K.K..K.K','K.K..K.K','K.KK.K.K','K.K.KK.K','K.K..K.K','K.K..K.K','KKKKKKKK'],
@@ -706,7 +711,11 @@ function shrinkPhoto(file, id){
     const c = document.createElement('canvas'); c.width = Math.round(img.width*r); c.height = Math.round(img.height*r);
     c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
     const data = c.toDataURL('image/jpeg', .72);
-    const done = () => { renderAll(); if($('#sheet').classList.contains('on')) openPhoto(id); };
+    const done = () => { renderAll();
+      if(!$('#sheet').classList.contains('on')) return;
+      if(id.includes('#')) openMenuPhoto(id);
+      else if(sheetPlace) openPlaceSheet(sheetPlace);
+      else openPhoto(id); };
     if(!PDB.db){ toast('이 브라우저에선 사진을 저장할 수 없어요 (개인정보 보호 모드인지 확인)'); return; }
     PDB.put(pk(id), data).then(()=>{ PH[id] = data; toast('사진을 넣었어요'); done(); })
       .catch(()=>{ toast('저장 공간이 꽉 찼어요. 안 쓰는 사진을 지워 주세요'); });
@@ -714,6 +723,45 @@ function shrinkPhoto(file, id){
   img.onerror = () => { URL.revokeObjectURL(url); toast('이 사진은 열 수 없어요. JPG나 PNG로 다시 골라 주세요'); };
   img.src = url;
 }
+/* 메뉴 사진: 키 = 장소id#메뉴 중국어 */
+function menuPh(pid, zh){
+  const k = pid+'#'+zh, ph = PH[k];
+  return ph ? '<button class="mph has" data-drop="'+esc(k)+'" onclick="openMenuPhoto(\''+jsq(k)+'\')" aria-label="메뉴 사진 보기"><img src="'+ph+'" alt="'+esc(zh)+' 사진" loading="lazy"></button>'
+            : '<button class="mph" data-drop="'+esc(k)+'" onclick="pickPhoto(\''+jsq(k)+'\')" aria-label="메뉴 사진 넣기">사진<br>넣기</button>';
+}
+function openMenuPhoto(k){
+  const [pid, zh] = [k.slice(0,k.indexOf('#')), k.slice(k.indexOf('#')+1)], p = place(pid);
+  const m = ((p && p.menu) || []).find(x=>x[0]===zh) || [zh];
+  openSheet(zh, '<div class="bigph" data-drop="'+esc(k)+'">'+(PH[k]?'<img src="'+PH[k]+'" alt="'+esc(zh)+' 사진">':'<div class="credit">사진을 여기로 끌어다 놓거나 아래 버튼을 누르세요</div>')+'</div>'
+    + '<p class="credit">'+esc(m[4]||'')+(m[1]?' · '+esc(m[1]):'')+(p?' · '+esc(p.ko):'')+'</p>'
+    + '<div class="btns" style="margin:12px 0 0"><button class="btn ac" onclick="pickPhoto(\''+jsq(k)+'\')">'+(PH[k]?'사진 바꾸기':'사진 넣기')+'</button>'
+    + (PH[k]?'<button class="btn danger" onclick="delPhoto(\''+jsq(k)+'\')">사진 지우기</button>':'')
+    + (p?'<button class="btn" onclick="openPlaceSheet(\''+pid+'\')">'+esc(p.ko)+'로 돌아가기</button>':'')+'</div>');
+}
+/* 끌어다 놓기: data-drop 가진 칸에 사진 파일을 놓으면 저장 */
+(function(){
+  const target = e => e.target && e.target.closest ? e.target.closest('[data-drop]') : null;
+  let last = null;
+  document.addEventListener('dragover', e=>{
+    if(!e.dataTransfer || ![...(e.dataTransfer.types||[])].includes('Files')) return;
+    e.preventDefault();   // 파일을 엉뚱한 곳에 놓아도 브라우저가 이동하지 않게
+    const t = target(e);
+    if(last && last!==t) last.classList.remove('dropon');
+    if(t){ t.classList.add('dropon'); e.dataTransfer.dropEffect = 'copy'; } else e.dataTransfer.dropEffect = 'none';
+    last = t;
+  });
+  document.addEventListener('dragleave', e=>{ const t = target(e); if(t && !t.contains(e.relatedTarget)) t.classList.remove('dropon'); });
+  document.addEventListener('drop', e=>{
+    if(!e.dataTransfer) return;
+    const t = target(e); if(last) last.classList.remove('dropon'); last = null;
+    if(![...(e.dataTransfer.types||[])].includes('Files')){ if(t){ e.preventDefault(); toast('사진 파일을 끌어다 놓아 주세요. 웹 이미지는 먼저 저장한 뒤 끌어 오세요'); } return; }
+    e.preventDefault();
+    if(!t || !TRIP){ toast('사진 칸(장소 그림·메뉴 사진 넣기) 위에 놓아 주세요'); return; }
+    const f = [...e.dataTransfer.files].find(x=>/^image\//.test(x.type));
+    if(!f){ toast('사진 파일만 넣을 수 있어요'); return; }
+    shrinkPhoto(f, t.dataset.drop);
+  });
+})();
 function delPhoto(id){
   ask('내가 넣은 사진을 지울까요?', '지우기', () => {
     const fin = () => { delete PH[id]; renderAll(); toast('사진을 지웠어요'); };
@@ -722,9 +770,9 @@ function delPhoto(id){
 }
 function openPhoto(id){
   const p = place(id), ph = photoOf(p);
-  let h = '<div class="bigph" style="--c:'+(CAT_C[p.cat]||'#FFF6B8')+'">'+(ph ? '<img src="'+ph.src+'" alt="'+esc(p.ko)+' 사진">' : pix(artOf(p), ART_PAL, 14))+'</div>';
+  let h = '<div class="bigph" data-drop="'+id+'" style="--c:'+(CAT_C[p.cat]||'#FFF6B8')+'">'+(ph ? '<img src="'+ph.src+'" alt="'+esc(p.ko)+' 사진">' : pix(artOf(p), ART_PAL, 14))+'</div>';
   if(ph && ph.wm) h += '<p class="credit">사진: '+esc(ph.wm.by)+' · '+esc(ph.wm.lic)+' · <a href="'+esc(ph.wm.page)+'" target="_blank" rel="noopener">위키미디어 원본</a></p>';
-  if(!ph) h += '<p class="credit">사진이 없어서 그림으로 보여 줘요. amap·대중점평에서 캡처한 사진이나 직접 찍은 사진을 넣을 수 있어요.</p>';
+  if(!ph) h += '<p class="credit">사진이 없어서 그림으로 보여 줘요. 캡처한 사진이나 직접 찍은 사진을 넣을 수 있어요. 컴퓨터에서는 사진 파일을 위 그림으로 끌어다 놓아도 돼요.</p>';
   h += '<div class="btns" style="margin:12px 0 0"><button class="btn ac" onclick="pickPhoto(\''+id+'\')">'+(PH[id]?'사진 바꾸기':'내 사진 넣기')+'</button>'
     + (PH[id] ? '<button class="btn danger" onclick="delPhoto(\''+id+'\')">내 사진 지우기</button>' : '')+'</div>'
     + '<p class="credit" style="margin-top:12px">내 사진은 이 기기에만 저장돼요. 백업 복사에는 들어가지 않아요.</p>';
@@ -1118,14 +1166,15 @@ function renderDays(){
       if(p && p.mich) metas.push('<span class="ac">미슐랭 '+p.mich+'</span>');
       if(p && p.price && !(p.price[0]===0&&p.price[1]===0)) metas.push('<span>1인 '+CUR().sym+p.price[0]+(p.price[0]!==p.price[1]?'~'+p.price[1]:'')+'</span>');
       if(p && p.closed && dt && p.closed.includes(dt.getDay())) metas.push('<span class="warn">'+DOW[dt.getDay()]+'요일 휴무 많음</span>');
-      h += '<button class="it" onclick="openItem('+k+')"><div class="t'+(x.time?'':' none')+'">'+(esc(x.time)||'--:--')+'</div><div style="min-width:0">'
+      h += '<button class="it" data-k="'+k+'" onclick="if(!dragJust())openItem('+k+')"><div class="tcol"><div class="t'+(x.time?'':' none')+'">'+(esc(x.time)||'--:--')+'</div>'
+        + '<span class="grip" onpointerdown="dragStart(event,\'item\','+k+')" title="끌어서 순서 바꾸기" aria-label="끌어서 순서 바꾸기">'+pix(PXI.grip,null,2)+'</span></div><div style="min-width:0">'
         + '<div class="ti">'+esc(itemName(x))+'</div>'
         + (zh && zh!==itemName(x) ? '<div class="zhl zh">'+esc(zh)+'</div>'+pyLine(zh, x.zh?null:p) : '')
         + (p && p.en ? '<div class="zhl">'+esc(p.en)+'</div>' : '')
         + (p && (p.loc||p.br) ? '<div class="zhl"><b>'+gl(p.loc||p.br)+'</b></div>' : '')
         + (x.memo ? '<div class="memo">'+gl(x.memo)+'</div>' : '')
         + (metas.length ? '<div class="meta">'+metas.join('')+'</div>' : '')
-        + '</div>'+(p ? thumb(p,50) : '<span></span>')+'</button>';
+        + '</div>'+(p ? thumb(p,96) : '<span></span>')+'</button>';
     });
     const bot = botFixed(i);
     if(bot){
@@ -1135,6 +1184,7 @@ function renderDays(){
     }
     h += '</div>';
   }
+  if(d.items.length>1) h += '<p class="cnt" style="padding:10px 20px 0">왼쪽 손잡이를 잡고 끌면 순서가 바뀌어요. 시간 칸은 그대로예요</p>';
   h += '<div class="btns"><button class="btn ac" onclick="openPicker()">장소에서 추가</button><button class="btn" onclick="openItem(-1)">직접 추가</button></div>';
   h += '<div class="btns"><button class="btn sm" onclick="openMapDay()">지도에서 동선 보기</button><button class="btn sm" onclick="sortDay()">시간순 정렬</button>'
     + (S.days.length>1?'<button class="btn sm danger" onclick="delDay()">이 날 삭제</button>':'')+'</div>';
@@ -1149,7 +1199,7 @@ function fixedRow(id, label){
   const p = place(id);
   return '<button class="it fixed" onclick="openPlaceSheet(\''+id+'\')"><div class="t fx">고정</div><div style="min-width:0">'
     + '<div class="ti">'+esc(label)+'</div><div class="zhl">'+esc(p.ko)+'</div><div class="zhl zh">'+esc(p.zh)+'</div>'+pyLine(p.zh,p)
-    + '</div>'+thumb(p,50)+'</button>';
+    + '</div>'+thumb(p,96)+'</button>';
 }
 function hotelCard(withMap){
   const h = place('hotel');
@@ -1171,7 +1221,109 @@ function hotelCard(withMap){
     +(withMap?'<button class="cpbtn" onclick="mapDay=-1;mapZoom=\'baiyun\';go(\'map\')">지도에서 보기</button>':'')+'</div>'
     + links(h) + '</div>';
 }
-function pickDay(i){ S.day=i; save(); renderDays(); }
+
+/* ───────── 일정 끌어다 놓기 ─────────
+   시간은 칸에 고정: 순서를 바꾸거나 넣고 빼도 시간 칸은 그대로, 장소만 칸을 옮겨 다님 */
+function slotMove(k, to){
+  const d = S.days[S.day], times = d.items.map(x=>x.time);
+  const [x] = d.items.splice(k,1); d.items.splice(to,0,x);
+  d.items.forEach((it,i)=>{ it.time = times[i]; });
+  [to, to+1, k, k+1].forEach(i=>{ if(d.items[i]) d.items[i].move = ''; });
+}
+function addMin(t, m){ const r = /^(\d{1,2}):(\d{2})$/.exec(t||''); if(!r) return ''; let v = (+r[1])*60+(+r[2])+m; v = Math.min(v, 23*60+59);
+  return String(Math.floor(v/60)).padStart(2,'0')+':'+String(v%60).padStart(2,'0'); }
+function slotInsert(id, to){
+  const d = S.days[S.day], times = d.items.map(x=>x.time);
+  const last = times.length ? times[times.length-1] : '';
+  d.items.splice(to, 0, {id:uid(), time:'', placeId:id, title:'', zh:'', memo:'', move:''});
+  times.push(addMin(last, 60));
+  d.items.forEach((it,i)=>{ it.time = times[i] || ''; });
+  if(d.items[to+1]) d.items[to+1].move = '';
+}
+function slotRemove(k){
+  const d = S.days[S.day], times = d.items.map(x=>x.time);
+  d.items.splice(k,1);
+  d.items.forEach((it,i)=>{ it.time = times[i]; });
+  if(d.items[k]) d.items[k].move = '';
+}
+let DRAG = null, DRAG_AT = 0;
+const dragJust = () => Date.now()-DRAG_AT < 300;
+function dragStart(e, kind, val){
+  if(e.button && e.button!==0) return;
+  e.preventDefault(); e.stopPropagation();
+  const src = kind==='item' ? e.currentTarget.closest('.it') : e.currentTarget;
+  const r = src.getBoundingClientRect();
+  DRAG = {kind, val, src, x0:e.clientX, y0:e.clientY, dx:e.clientX-r.left, dy:e.clientY-r.top, w:r.width, moved:false, ghost:null, line:null, to:null, out:false};
+  document.addEventListener('pointermove', dragMove, {passive:false});
+  document.addEventListener('pointerup', dragEnd); document.addEventListener('pointercancel', dragEnd);
+}
+function dragMove(e){
+  if(!DRAG) return;
+  if(!DRAG.moved){
+    if(Math.hypot(e.clientX-DRAG.x0, e.clientY-DRAG.y0) < 6) return;
+    DRAG.moved = true;
+    const g = DRAG.src.cloneNode(true); g.className += ' ghost'; g.style.width = Math.min(DRAG.w, 420)+'px'; document.body.appendChild(g); DRAG.ghost = g;
+    if(DRAG.kind==='item'){ DRAG.src.classList.add('dragging'); document.body.classList.add('dragging-item'); }
+    DRAG.line = document.createElement('div'); DRAG.line.className = 'dropline';
+  }
+  e.preventDefault();
+  DRAG.ghost.style.left = (e.clientX - Math.min(DRAG.dx, 60))+'px'; DRAG.ghost.style.top = (e.clientY - Math.min(DRAG.dy, 30))+'px';
+  // 빼기 칸 (폰: 아래 띠 / 넓은 화면: 오른쪽 장소 판)
+  const zone = $('#dropzone'), pal = $('#palette'), under = document.elementFromPoint(e.clientX, e.clientY);
+  DRAG.out = DRAG.kind==='item' && !!under && (zone.contains(under) || (pal.offsetParent && pal.contains(under)));
+  zone.classList.toggle('hot', DRAG.out); pal.classList.toggle('hot', DRAG.out);
+  // 넣을 자리
+  const tl = $('#dayView .tl') || $('#dayView'), cards = [...document.querySelectorAll('#dayView .it[data-k]')].filter(c=>c!==DRAG.src);
+  const tr = tl.getBoundingClientRect();
+  const inside = !DRAG.out && e.clientX > tr.left-40 && e.clientX < tr.right+40 && e.clientY > tr.top-60 && e.clientY < tr.bottom+60;
+  if(inside){
+    let to = cards.length, before = null;
+    for(let i=0;i<cards.length;i++){ const b = cards[i].getBoundingClientRect(); if(e.clientY < b.top + b.height/2){ to = i; before = cards[i]; break; } }
+    DRAG.to = to;
+    if(before) before.parentNode.insertBefore(DRAG.line, before);
+    else if(cards.length) cards[cards.length-1].after(DRAG.line);
+    else tl.appendChild(DRAG.line);
+  } else { DRAG.to = null; DRAG.line.remove(); }
+  // 화면 끝에서 자동 스크롤
+  if(e.clientY < 70) window.scrollBy(0,-14); else if(e.clientY > innerHeight-90) window.scrollBy(0,14);
+}
+function dragEnd(){
+  document.removeEventListener('pointermove', dragMove); document.removeEventListener('pointerup', dragEnd); document.removeEventListener('pointercancel', dragEnd);
+  if(!DRAG) return;
+  const D = DRAG; DRAG = null;
+  document.body.classList.remove('dragging-item'); $('#dropzone').classList.remove('hot'); $('#palette').classList.remove('hot');
+  if(D.ghost) D.ghost.remove(); if(D.line) D.line.remove(); if(D.src) D.src.classList.remove('dragging');
+  if(!D.moved){ if(D.kind==='place') addToDay(D.val, S.day, true); return; }
+  DRAG_AT = Date.now();
+  if(D.kind==='item'){
+    if(D.out){ const nm = itemName(S.days[S.day].items[D.val]); slotRemove(D.val); save(); renderAll(); toast(nm+' · 일정에서 뺐어요'); return; }
+    if(D.to==null) return;
+    const k = D.val, to = D.to;   // to 는 끌던 카드를 뺀 목록 기준 자리
+    if(to===k) return;
+    slotMove(k, to); save(); renderAll();
+  } else if(D.kind==='place' && D.to!=null){
+    slotInsert(D.val, D.to); save(); renderAll(); toast(place(D.val).ko+' → '+(S.day+1)+'일차');
+  }
+}
+/* 오른쪽 장소 판 (넓은 화면) */
+let palCat = 'all';
+function renderPalette(){
+  const pal = $('#palette'); if(!pal || !TRIP) return;
+  const q = (($('#palQ')||{}).value||'').trim().toLowerCase();
+  const cats = ['all','fav',...Object.keys(CATS).filter(c=>c!=='base' && allPlaces().some(p=>p.cat===c))];
+  const list = allPlaces().filter(p=>p.cat!=='base' && (palCat==='all' || (palCat==='fav' ? S.fav[p.id] : p.cat===palCat))
+    && (!q || (p.ko+' '+p.zh+' '+(p.en||'')).toLowerCase().includes(q)));
+  const keep = document.activeElement && document.activeElement.id==='palQ';
+  pal.innerHTML = '<div class="pal-h"><b>장소 끌어다 넣기</b><span>'+(S.day+1)+'일차에 넣어요 · 일정을 여기로 끌면 빠져요</span></div>'
+    + '<div class="search" style="margin:0 0 8px"><input id="palQ" placeholder="이름 검색" value="'+esc(q)+'" oninput="renderPalette()" autocomplete="off"></div>'
+    + '<div class="chips sub" style="padding:0 0 8px">'+cats.map(c=>'<button class="chip'+(palCat===c?' on':'')+'" onclick="palCat=\''+c+'\';renderPalette()">'+(c==='all'?'전체':c==='fav'?'찜':CATS[c])+'</button>').join('')+'</div>'
+    + '<div class="tiles">'+(list.map(p=>{ const u = usedIn(p.id);
+        return '<div class="ptile" onpointerdown="dragStart(event,\'place\',\''+p.id+'\')" title="끌어서 일정에 넣기 · 누르면 맨 뒤에 넣기">'+thumb(p,120)+'<b>'+esc(p.ko)+'</b><span class="zh">'+esc(p.zh)+'</span>'
+          +(u.length?'<span class="used">'+u.join('·')+'일차</span>':'')+'</div>'; }).join('') || '<div class="empty-day">장소가 없어요</div>')+'</div>';
+  if(keep){ const i = $('#palQ'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
+}
+
+function pickDay(i){ S.day=i; save(); renderDays(); renderPalette(); }
 function addDay(){ S.days.push({id:uid(),items:[]}); S.day=S.days.length-1; save(); renderAll(); }
 function delDay(){
   const d=S.days[S.day];
@@ -1255,7 +1407,9 @@ function saveItem(k){
 function moveItem(k,dir){
   const a = S.days[S.day].items, j = k+dir;
   if(j<0||j>=a.length) return;
-  [a[k],a[j]]=[a[j],a[k]]; save(); renderDays(); openItem(j);
+  const tk = a[k].time, tj = a[j].time;
+  [a[k],a[j]]=[a[j],a[k]]; a[k].time = tk; a[j].time = tj; a[k].move = ''; a[j].move = '';
+  save(); renderDays(); openItem(j);
 }
 function toDay(k,j){
   const x = S.days[S.day].items.splice(k,1)[0];
@@ -1272,7 +1426,7 @@ let pickCat='all';
 function openPicker(){
   openSheet((S.day+1)+'일차에 장소 넣기',
     '<div class="search" style="margin:0 0 10px"><input id="pq" placeholder="검색" oninput="renderPick()" autocomplete="off"></div>'
-    +'<div class="chips" id="pChips" style="padding:0 0 8px"></div><div class="pick" id="pList"></div>');
+    +'<div class="chips" id="pChips" style="padding:0 0 8px"></div><div class="tiles" id="pList"></div>');
   renderPick();
 }
 function renderPick(){
@@ -1281,7 +1435,7 @@ function renderPick(){
   const list = allPlaces().filter(p=>(pickCat==='all'||p.cat===pickCat) && (!q || (p.ko+p.zh+(p.note||'')).toLowerCase().includes(q)));
   $('#pList').innerHTML = list.map(p=>{
     const u = usedIn(p.id);
-    return '<button onclick="addToDay(\''+p.id+'\','+S.day+',true)"><div><div style="font-weight:600">'+esc(p.ko)+'</div><div class="a"><span class="zh">'+esc(p.zh)+'</span> · '+AREAS[p.area].short+(p.br?' · '+esc(p.br):'')+'</div></div>'
+    return '<button class="ptile" onclick="addToDay(\''+p.id+'\','+S.day+',true)">'+thumb(p,120)+'<b>'+esc(p.ko)+'</b><span class="zh">'+esc(p.zh)+'</span>'
       +(u.length?'<span class="used">'+u.join('·')+'일차</span>':'')+'</button>';
   }).join('') || '<div class="empty-day">검색 결과가 없어요</div>';
 }
@@ -1313,13 +1467,13 @@ function placeCard(p){
   return '<div class="pc" id="pc-'+p.id+'"><div class="h"><div style="min-width:0;flex:1"><div class="nmrow"><span class="nm">'+esc(p.ko)+'</span>'
     + '<button class="star'+(fav?' on':'')+'" onclick="toggleFav(\''+p.id+'\')" aria-label="찜">'+ICON_STAR(fav)+'</button></div>'
     + '<div class="zhn zh">'+esc(p.zh)+'</div>'+pyLine(p.zh,p)+(p.en?'<div class="enn">'+esc(p.en)+'</div>':'')+'</div>'
-    + '<button class="thbtn" onclick="openPhoto(\''+p.id+'\')" aria-label="'+esc(p.ko)+' 사진 보기">'+thumb(p,76)+'</button></div>'
+    + '<button class="thbtn" data-drop="'+p.id+'" onclick="openPhoto(\''+p.id+'\')" aria-label="'+esc(p.ko)+' 사진 보기">'+thumb(p,104)+'</button></div>'
     + '<div class="badges">'+badges.join('')+'</div>'
     + (pr?'<div class="price">'+pr+'</div>':'')
     + branchLine(p)
     + (p.note?'<div class="note">'+gl(p.note)+'</div>':'')
-    + (p.menu&&p.menu.length?'<div class="menu">'+sortMenu(p.menu).map(m=>'<button onclick="copy(\''+jsq(m[0])+'\')"><div style="min-width:0"><div class="zh">'+esc(m[0])+(m[5]?' <span class="mp">¥'+m[5]+'</span>':'')+'</div>'
-      +pyLine(m[0],m[2]?{py:m[2]}:null)+(m[4]?'<div class="men">'+esc(m[4])+'</div>':'')+(m[1]?'<div class="ko">'+esc(m[1])+'</div>':'')+menuTags(m[3])+'</div><span class="cp">복사</span></button>').join('')+'</div>':'')
+    + (p.menu&&p.menu.length?'<div class="menu">'+sortMenu(p.menu).map(m=>'<div class="mrow">'+menuPh(p.id,m[0])+'<div class="mtext" onclick="copy(\''+jsq(m[0])+'\')"><div class="zh">'+esc(m[0])+(m[5]?' <span class="mp">¥'+m[5]+'</span>':'')+'</div>'
+      +pyLine(m[0],m[2]?{py:m[2]}:null)+(m[4]?'<div class="men">'+esc(m[4])+'</div>':'')+(m[1]?'<div class="ko">'+esc(m[1])+'</div>':'')+menuTags(m[3])+'</div><button class="cp" onclick="copy(\''+jsq(m[0])+'\')">복사</button></div>').join('')+'</div>':'')
     + noteBox(p)
     + mallSpots(p)
     + links(p)
@@ -1587,7 +1741,7 @@ $('#q').addEventListener('input', renderPlaces);
 function renderAll(){
   if(!TRIP){ renderTop(); renderHome(); return; }
   if(!isGZ()) P = [hotelPlace()];
-  renderTop(); renderFlights(); renderDays(); renderPlaces(); renderRec(); renderInfo(); renderMap();
+  renderTop(); renderFlights(); renderDays(); renderPalette(); renderPlaces(); renderRec(); renderInfo(); renderMap();
 }
 
 /* ───────── 여행 목록 화면 ───────── */
