@@ -1742,7 +1742,7 @@ function dragEnd(){
   const D = DRAG; DRAG = null;
   document.body.classList.remove('dragging-item'); $('#dropzone').classList.remove('hot'); $('#palette').classList.remove('hot');
   if(D.ghost) D.ghost.remove(); if(D.line) D.line.remove(); if(D.src) D.src.classList.remove('dragging');
-  if(!D.moved){ if(D.kind==='place') addToDay(D.val, S.day, true); return; }
+  if(!D.moved){ if(D.kind==='place') openPlaceSheet(D.val); return; }   // 누르면 정보, 끌면 넣기
   DRAG_AT = Date.now();
   if(D.kind==='item'){
     if(D.out){ const nm = itemName(S.days[S.day].items[D.val]); slotRemove(D.val); save(); renderAll(); toast(nm+' · 일정에서 뺐어요'); return; }
@@ -1763,11 +1763,11 @@ function renderPalette(){
   const list = allPlaces().filter(p=>p.cat!=='base' && (palCat==='all' || (palCat==='fav' ? S.fav[p.id] : p.cat===palCat))
     && (!q || (p.ko+' '+p.zh+' '+(p.en||'')).toLowerCase().includes(q)));
   const keep = document.activeElement && document.activeElement.id==='palQ';
-  pal.innerHTML = '<div class="pal-h"><b>장소 끌어다 넣기</b><span>'+(S.day+1)+'일차에 넣어요 · 일정을 여기로 끌면 빠져요</span></div>'
+  pal.innerHTML = '<div class="pal-h"><b>장소 끌어다 넣기</b><span>끌어서 '+(S.day+1)+'일차에 넣기 · 누르면 정보 · 일정을 여기로 끌면 빠져요</span></div>'
     + '<div class="search" style="margin:0 0 8px"><input id="palQ" placeholder="이름 검색" value="'+esc(q)+'" oninput="renderPalette()" autocomplete="off"></div>'
     + '<div class="chips sub" style="padding:0 0 8px">'+cats.map(c=>'<button class="chip'+(palCat===c?' on':'')+'" onclick="palCat=\''+c+'\';renderPalette()">'+(c==='all'?'전체':c==='fav'?'찜':CATS[c])+'</button>').join('')+'</div>'
     + '<div class="tiles">'+(list.map(p=>{ const u = usedIn(p.id);
-        return '<div class="ptile" onpointerdown="dragStart(event,\'place\',\''+p.id+'\')" title="끌어서 일정에 넣기 · 누르면 맨 뒤에 넣기">'+thumb(p,120)+'<b>'+esc(p.ko)+'</b><span class="zh">'+esc(p.zh)+'</span>'
+        return '<div class="ptile" onpointerdown="dragStart(event,\'place\',\''+p.id+'\')" title="끌어서 일정에 넣기 · 누르면 정보 보기">'+thumb(p,120)+'<b>'+esc(p.ko)+'</b><span class="zh">'+esc(p.zh)+'</span>'
           +(u.length?'<span class="used">'+u.join('·')+'일차</span>':'')+'</div>'; }).join('') || '<div class="empty-day">장소가 없어요</div>')+'</div>';
   if(keep){ const i = $('#palQ'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }
 }
