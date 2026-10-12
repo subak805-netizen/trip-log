@@ -33,6 +33,7 @@ __STYLE__
 
   <!-- 장소 -->
   <section class="page" id="pg-place">
+    <div class="btns" style="margin:0 20px 14px"><button class="btn ac" onclick="openPlaceEdit()">＋ 장소 추가</button></div>
     <div class="search">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input id="q" placeholder="이름·메뉴·중국어로 검색" autocomplete="off">
@@ -42,7 +43,6 @@ __STYLE__
     <div class="chips sub" id="areaChips"></div>
     <div class="cnt" id="placeCnt"></div>
     <div class="pl" id="placeList"></div>
-    <div class="btns"><button class="btn" onclick="openPlaceEdit()">장소 직접 추가</button></div>
   </section>
 
   <!-- 지도 -->
@@ -1146,8 +1146,9 @@ function renderDays(){
   if(i===0 && f.out.arr) h += '<div class="banner">'+(isGZ()?'광저우':esc(TRIP.city))+' 도착 <b>'+esc(f.out.arr)+'</b>'+(isGZ()?' · 공항에서 숙소까지 택시 30~40분':'')+'</div>';
   if(i===S.days.length-1 && f.back.dep) h += '<div class="banner">출국 <b>'+esc(f.back.dep)+'</b> · 호텔에서 <b>'+minus(f.back.dep,240)+'</b>까지 출발 ('+(isGZ()?'공항까지 30~40분 + 3시간 전 도착 + 여유':'국제선 3시간 전 도착 + 이동 1시간 기준')+')</div>';
 
+  h += '<div class="btns" style="margin:0 20px 14px"><button class="btn ac" onclick="openPicker()">＋ 장소에서 추가</button><button class="btn" onclick="openItem(-1)">＋ 직접 추가</button></div>';
   if(!d.items.length){
-    h += '<div class="tl"><div class="empty-day">아직 일정이 없어요<br>아래에서 장소를 넣어 보세요</div></div>';
+    h += '<div class="tl"><div class="empty-day">아직 일정이 없어요<br>위 버튼으로 장소를 넣어 보세요</div></div>';
   } else {
     h += '<div class="tl">';
     if(topFixed(i)) h += fixedRow('hotel','숙소에서 출발');
@@ -1185,7 +1186,6 @@ function renderDays(){
     h += '</div>';
   }
   if(d.items.length>1) h += '<p class="cnt" style="padding:10px 20px 0">왼쪽 손잡이를 잡고 끌면 순서가 바뀌어요. 시간 칸은 그대로예요</p>';
-  h += '<div class="btns"><button class="btn ac" onclick="openPicker()">장소에서 추가</button><button class="btn" onclick="openItem(-1)">직접 추가</button></div>';
   h += '<div class="btns"><button class="btn sm" onclick="openMapDay()">지도에서 동선 보기</button><button class="btn sm" onclick="sortDay()">시간순 정렬</button>'
     + (S.days.length>1?'<button class="btn sm danger" onclick="delDay()">이 날 삭제</button>':'')+'</div>';
   $('#dayView').innerHTML = h;
@@ -1533,7 +1533,7 @@ function renderPlaces(){
   });
   $('#placeCnt').textContent = list.length+'곳 · 가격은 1인 기준 대략, 1'+CUR().name+' = '+(+S.rate||190)+'원';
   $('#placeList').innerHTML = list.map(placeCard).join('') || (allPlaces().filter(p=>p.cat!=='base').length ? '<div class="empty-day">해당하는 장소가 없어요</div>'
-    : '<div class="empty-day">아직 장소가 없어요<br><br>아래 「장소 직접 추가」로 넣거나<br>클로드에게 「'+esc(TRIP.city)+' 여행 장소 채워줘」라고 부탁하세요</div>');
+    : '<div class="empty-day">아직 장소가 없어요<br><br>위 「＋ 장소 추가」로 넣거나<br>클로드에게 「'+esc(TRIP.city)+' 여행 장소 채워줘」라고 부탁하세요</div>');
 }
 /* 내 메모 (먹어보고 싶은 메뉴 등) */
 function noteBox(p){
