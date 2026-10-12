@@ -531,7 +531,7 @@ function loadS(){
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){}
-  if(TRIP){ TRIP.start = (S.flights.out.date || TRIP.start || ''); TRIP.nDays = S.days.length; saveTrips(); }
+  if(TRIP){ TRIP.start = (S.flights.out.date || TRIP.start || ''); TRIP.nDays = S.days.length; TRIP._ts = Date.now(); saveTrips(); cloudPush(TRIP.id); }
 }
 function hotelPlace(){ const h = (S && S.hotel) || {}; return {id:'hotel', cat:'base', area:'etc', ko:h.ko||'숙소', zh:h.zh||'', addr:h.addr||'', note:h.note||'', lat:h.lat, lng:h.lng}; }
 
@@ -1105,7 +1105,7 @@ function renderTop(){
     const diff = Math.round((d0-today)/864e5);
     s += diff>0 ? ' · <em>D-'+diff+'</em>' : diff===0 ? ' · <em>오늘 출발</em>' : '';
   } else s += ' · <em>날짜 미정</em>';
-  $('#topSub').innerHTML = s;
+  $('#topSub').innerHTML = s+'<span id="cloudPill" class="cpill"></span>'; renderCloud();
 }
 
 /* ───────── 일정 탭 ───────── */
@@ -1339,7 +1339,8 @@ function sortDay(){
 
 /* ───────── 시트 ───────── */
 function openSheet(title, html){ sheetPlace = null; $('#shTitle').textContent=title; $('#shBody').innerHTML=html; $('#dim').classList.add('on'); $('#sheet').classList.add('on'); $('#shBody').scrollTop=0; }
-function closeSheet(){ sheetPlace = null; $('#dim').classList.remove('on'); $('#sheet').classList.remove('on'); }
+function closeSheet(){ sheetPlace = null; $('#dim').classList.remove('on'); $('#sheet').classList.remove('on');
+  if(typeof CLOUD!=='undefined' && CLOUD.pending){ CLOUD.pending = false; setTimeout(()=>{ if(TRIP){ loadS(); } renderAll(); }, 0); } }
 
 function openFlight(k){
   const x = S.flights[k];
@@ -1764,13 +1765,15 @@ function tripCard(t){
 }
 function renderHome(){
   const up = TRIPS.filter(t=>!t.done), done = TRIPS.filter(t=>t.done);
-  $('#homeView').innerHTML =
-    '<div class="sec">다가오는 여행</div><div class="pad tlist">'+(up.map(tripCard).join('') || '<div class="empty-day">다가오는 여행이 없어요</div>')+'</div>'
+  $('#homeView').innerHTML = '<div class="pad" id="cloudBox"></div>'
+    + '<div class="sec">다가오는 여행</div><div class="pad tlist">'+(up.map(tripCard).join('') || '<div class="empty-day">다가오는 여행이 없어요</div>')+'</div>'
     + '<div class="btns"><button class="btn ac" onclick="openNewTrip()">＋ 새 여행 만들기</button></div>'
     + (done.length ? '<div class="sec">다녀온 여행</div><div class="pad tlist">'+done.map(tripCard).join('')+'</div>' : '')
     + '<p class="cnt" style="padding:18px 20px 0">새 도시의 맛집·몰·메뉴는 클로드에게 「OO 여행 장소 채워줘」라고 부탁하면 광저우처럼 넣어 드려요.</p>';
+  renderCloud();
 }
 function openTrip(id){
+  CLOUD.pending = false;
   TRIP = TRIPS.find(t=>t.id===id); if(!TRIP) return;
   KEY = keyOf(TRIP); loadS();
   P = isGZ() ? GZ_P : [hotelPlace()];
@@ -1809,7 +1812,7 @@ function createTrip(){
     people:+$('#tPeople').value||'', done:false, created:Date.now()};
   const st = blankSeed({start:$('#tStart').value, days:$('#tDays').value, hotel:$('#tHotel').value.trim(), cur, rate:(CURS.find(c=>c[0]===cur)||[])[3]});
   try{ localStorage.setItem(keyOf(t), JSON.stringify(st)); }catch(e){ toast('저장 공간이 부족해요'); return; }
-  TRIPS.push(t); saveTrips(); closeSheet(); openTrip(t.id); toast(name+' 여행을 만들었어요');
+  t._ts = Date.now(); TRIPS.push(t); saveTrips(); cloudPush(t.id); closeSheet(); openTrip(t.id); toast(name+' 여행을 만들었어요');
 }
 function openTripMenu(id){
   const t = TRIPS.find(x=>x.id===id);
@@ -1821,15 +1824,15 @@ function openTripMenu(id){
 function saveTripInfo(id){
   const t = TRIPS.find(x=>x.id===id);
   t.name = $('#tName').value.trim() || t.name; t.city = $('#tCity').value.trim() || t.city; t.en = $('#tEn').value.trim(); t.people = +$('#tPeople').value || '';
-  delete t.center; saveTrips(); closeSheet(); renderAll(); toast('저장했어요');
+  delete t.center; t._ts = Date.now(); saveTrips(); cloudPush(id); closeSheet(); renderAll(); toast('저장했어요');
 }
-function toggleDone(id){ const t = TRIPS.find(x=>x.id===id); t.done = !t.done; saveTrips(); closeSheet(); renderAll(); toast(t.done?'다녀온 여행으로 옮겼어요':'다가오는 여행으로 옮겼어요'); }
+function toggleDone(id){ const t = TRIPS.find(x=>x.id===id); t.done = !t.done; t._ts = Date.now(); saveTrips(); cloudPush(id); closeSheet(); renderAll(); toast(t.done?'다녀온 여행으로 옮겼어요':'다가오는 여행으로 옮겼어요'); }
 function delTrip(id){
   const t = TRIPS.find(x=>x.id===id);
   ask('「'+t.name+'」 여행의 일정·장소·메모·사진이 모두 지워져요.', '삭제', async () => {
     try{ localStorage.removeItem(keyOf(t)); }catch(e){}
     try{ if(!PDB.db) await PDB.open(); const all = await PDB.all(); for(const k of Object.keys(all)) if(k.startsWith(t.id+':')) await PDB.del(k); }catch(e){}
-    TRIPS = TRIPS.filter(x=>x.id!==id); saveTrips(); renderAll(); toast('삭제했어요');
+    TRIPS = TRIPS.filter(x=>x.id!==id); saveTrips(); cloudDelete(id); renderAll(); toast('삭제했어요');
   });
 }
 /* 새 여행 숙소 */
@@ -1934,7 +1937,138 @@ function renderRealMap(){
   }).catch(()=>{ wrap.innerHTML = '<div class="empty-day" style="border:0;box-shadow:none">지도를 불러오지 못했어요. 인터넷 연결을 확인해 주세요</div>'; });
 }
 
+/* ───────── 클라우드 저장 (Firebase trip-log-ff59c) ─────────
+   users/{uid}/trips/{여행id} = {meta, state(JSON 글자), ts, deleted}. 여행 통째로, 고친 시각(ts)이 늦은 쪽이 이김.
+   사진은 올리지 않음. 아티팩트(claude.ai)에서는 외부 연결이 막혀 꺼짐 */
+const FB_CONF = {apiKey:"AIzaSyDKDJFZ-oAPezUzwFW7Yv_E3WLTzC9TcHs", authDomain:"trip-log-ff59c.firebaseapp.com", projectId:"trip-log-ff59c",
+  storageBucket:"trip-log-ff59c.firebasestorage.app", messagingSenderId:"573421755230", appId:"1:573421755230:web:4b38bc27d81f29fa790dcf"};
+const CLOUD = {on:false, ready:false, user:null, db:null, unsub:null, timers:{}, st:'', at:0, err:'', pending:false};
+function loadScript(src){ return new Promise((ok,no)=>{ const sc = document.createElement('script'); sc.src = src; sc.onload = ok; sc.onerror = no; document.head.appendChild(sc); }); }
+const tripsCol = () => CLOUD.db.collection('users').doc(CLOUD.user.uid).collection('trips');
+async function cloudInit(){
+  if(IN_ARTIFACT){ renderCloud(); return; }
+  try{
+    const b = 'https://www.gstatic.com/firebasejs/10.7.1/';
+    await loadScript(b+'firebase-app-compat.js'); await loadScript(b+'firebase-auth-compat.js'); await loadScript(b+'firebase-firestore-compat.js');
+    firebase.initializeApp(FB_CONF); CLOUD.db = firebase.firestore(); CLOUD.on = true;
+    firebase.auth().getRedirectResult().catch(authErr);
+    firebase.auth().onAuthStateChanged(u=>{ CLOUD.user = u; CLOUD.ready = true; if(u) cloudStart(); else cloudStop(); renderCloud(); });
+  }catch(e){ CLOUD.on = false; CLOUD.ready = true; renderCloud(); }
+}
+function cloudSet(st, err){ CLOUD.st = st; if(st==='saved') CLOUD.at = Date.now(); CLOUD.err = err||''; renderCloud(); }
+function cloudPush(id){
+  if(!CLOUD.user) return;
+  clearTimeout(CLOUD.timers[id]); cloudSet('saving');
+  CLOUD.timers[id] = setTimeout(async ()=>{
+    const t = TRIPS.find(x=>x.id===id); if(!t) return;
+    let st = null; try{ st = localStorage.getItem(keyOf(t)); }catch(e){}
+    if(!st){ cloudSet('saved'); return; }   // 한 번도 안 고친 광저우 기본 일정은 올릴 것 없음
+    try{ await tripsCol().doc(id).set({meta:JSON.stringify(t), state:st, ts:t._ts||Date.now(), deleted:false}); cloudSet('saved'); }
+    catch(e){ cloudSet('error', e.code==='permission-denied' ? 'Firestore 규칙을 확인해 주세요' : '인터넷 연결을 확인해 주세요'); }
+  }, 1200);
+}
+async function cloudDelete(id){
+  if(!CLOUD.user) return;
+  try{ await tripsCol().doc(id).set({deleted:true, ts:Date.now(), meta:'', state:''}); cloudSet('saved'); }catch(e){ cloudSet('error','인터넷 연결을 확인해 주세요'); }
+}
+function applyRemote(id, d){
+  const t = TRIPS.find(x=>x.id===id), lts = t ? (t._ts||0) : 0;
+  if(d.deleted){
+    if(t && lts <= d.ts){ try{ localStorage.removeItem(keyOf(t)); }catch(e){} TRIPS = TRIPS.filter(x=>x.id!==id); if(TRIP && TRIP.id===id) { saveTrips(); goHome(); } return 'changed'; }
+    return '';
+  }
+  if(t && lts > d.ts) return 'push';
+  if(t && lts === d.ts) return '';
+  let meta = {}; try{ meta = JSON.parse(d.meta); }catch(e){}
+  try{ localStorage.setItem(keyOf(meta.id ? meta : {id, pack:id==='gz'?'gz':null}), d.state); }catch(e){}
+  if(t) Object.assign(t, meta, {_ts:d.ts}); else TRIPS.push(Object.assign(meta, {id, _ts:d.ts}));
+  if(TRIP && TRIP.id===id){
+    if($('#sheet').classList.contains('on') || DRAG) CLOUD.pending = true;   // 고치는 중이면 시트 닫을 때 반영
+    else loadS();
+  }
+  return 'changed';
+}
+async function cloudStart(){
+  const uid = CLOUD.user.uid;
+  let last = null; try{ last = localStorage.getItem('triplog_uid'); }catch(e){}
+  if(last && last!==uid){   // 다른 계정이 쓰던 기기: 그 사람 내용은 그 사람 클라우드에 있으니 이 기기에서만 비움
+    TRIPS.forEach(t=>{ try{ localStorage.removeItem(keyOf(t)); }catch(e){} }); TRIPS = []; try{ localStorage.removeItem(TKEY); }catch(e){} loadTrips();
+    if(TRIP) goHome();
+  }
+  try{ localStorage.setItem('triplog_uid', uid); }catch(e){}
+  cloudSet('saving');
+  try{
+    const snap = await tripsCol().get(), seen = {};
+    let changed = false;
+    snap.forEach(doc=>{ seen[doc.id] = 1; const r = applyRemote(doc.id, doc.data()); if(r==='changed') changed = true; if(r==='push') cloudPush(doc.id); });
+    TRIPS.forEach(t=>{ if(!seen[t.id]){ if(!t._ts) t._ts = Date.now(); cloudPush(t.id); } });   // 이 기기에만 있던 여행 올리기
+    saveTrips(); if(changed) renderAll();
+    cloudSet('saved');
+    if(CLOUD.unsub) CLOUD.unsub();
+    CLOUD.unsub = tripsCol().onSnapshot(sn=>{
+      let ch = false;
+      sn.docChanges().forEach(c=>{ if(c.type==='removed') return; const r = applyRemote(c.doc.id, c.doc.data()); if(r==='changed') ch = true; });
+      if(ch){ saveTrips(); if(!CLOUD.pending) renderAll(); }
+    }, e=>cloudSet('error', e.code==='permission-denied' ? 'Firestore 규칙을 확인해 주세요' : '연결이 끊겼어요'));
+  }catch(e){ cloudSet('error', e.code==='permission-denied' ? 'Firestore 규칙을 확인해 주세요' : '인터넷 연결을 확인해 주세요'); }
+}
+function cloudStop(){ if(CLOUD.unsub){ CLOUD.unsub(); CLOUD.unsub = null; } CLOUD.st = ''; }
+function renderCloud(){
+  const pill = $('#cloudPill');
+  if(pill) pill.textContent = !CLOUD.user ? '' : CLOUD.st==='saving' ? ' · 클라우드 저장 중' : CLOUD.st==='error' ? ' · 클라우드 저장 실패' : CLOUD.st==='saved' ? ' · 클라우드 저장됨' : '';
+  const box = $('#cloudBox'); if(!box) return;
+  if(IN_ARTIFACT){ box.innerHTML = '<div class="cloud"><b>클라우드 저장</b><p>배포 주소(github.io)에서 로그인하면 쓸 수 있어요</p></div>'; return; }
+  if(!CLOUD.ready){ box.innerHTML = '<div class="cloud"><b>클라우드 저장</b><p>연결하는 중…</p></div>'; return; }
+  if(!CLOUD.on){ box.innerHTML = '<div class="cloud"><b>클라우드 저장</b><p>연결하지 못했어요. 인터넷을 확인하고 새로고침해 주세요</p></div>'; return; }
+  if(!CLOUD.user){
+    box.innerHTML = '<div class="cloud"><b>클라우드 저장</b><p>로그인하면 폰을 바꾸거나 기록이 지워져도 그대로 되살아나요. 일행도 각자 가입해서 따로 써요</p>'
+      + '<div class="cl-btns"><button class="btn sm ac" onclick="loginGoogle()">구글로 로그인</button><button class="btn sm" onclick="openEmailLogin()">이메일로 로그인·가입</button></div></div>';
+    return;
+  }
+  const t = CLOUD.at ? new Date(CLOUD.at) : null;
+  box.innerHTML = '<div class="cloud on"><b>클라우드 저장 켜짐</b><p>'+esc(CLOUD.user.email||'로그인됨')+'<br>'
+    + (CLOUD.st==='error' ? '<span class="cl-err">저장 실패 · '+esc(CLOUD.err)+'</span>' : CLOUD.st==='saving' ? '저장 중…' : t ? '마지막 저장 '+String(t.getHours()).padStart(2,'0')+':'+String(t.getMinutes()).padStart(2,'0') : '')
+    + '</p><div class="cl-btns"><button class="btn sm" onclick="logout()">로그아웃</button></div><p class="cl-note">사진은 이 기기에만 있어요</p></div>';
+}
+function loginGoogle(){
+  const pv = new firebase.auth.GoogleAuthProvider();
+  firebase.auth().signInWithPopup(pv).catch(e=>{
+    if(['auth/popup-blocked','auth/operation-not-supported-in-this-environment','auth/web-storage-unsupported'].includes(e.code)) firebase.auth().signInWithRedirect(pv);
+    else authErr(e);
+  });
+}
+function openEmailLogin(){
+  openSheet('이메일로 로그인·가입',
+    '<div class="fld"><label>이메일</label><input id="lgEmail" type="email" autocomplete="username" inputmode="email"></div>'
+   +'<div class="fld"><label>비밀번호 (6자 이상)</label><input id="lgPw" type="password" autocomplete="current-password"></div>'
+   +'<div class="btns" style="margin:4px 0 0"><button class="btn ac" onclick="emailAuth(\'in\')">로그인</button><button class="btn" onclick="emailAuth(\'new\')">처음이면 가입</button></div>'
+   +'<div class="btns" style="margin:12px 0 0"><button class="btn sm" onclick="emailReset()">비밀번호를 잊었어요</button></div>');
+}
+async function emailAuth(mode){
+  const em = $('#lgEmail').value.trim(), pw = $('#lgPw').value;
+  if(!em || !pw){ toast('이메일과 비밀번호를 적어 주세요'); return; }
+  try{
+    if(mode==='new') await firebase.auth().createUserWithEmailAndPassword(em, pw); else await firebase.auth().signInWithEmailAndPassword(em, pw);
+    closeSheet(); toast(mode==='new' ? '가입했어요 · 클라우드 저장이 켜졌어요' : '로그인했어요');
+  }catch(e){ authErr(e); }
+}
+async function emailReset(){
+  const em = $('#lgEmail').value.trim(); if(!em){ toast('이메일을 먼저 적어 주세요'); return; }
+  try{ await firebase.auth().sendPasswordResetEmail(em); toast('비밀번호 바꾸는 메일을 보냈어요'); }catch(e){ authErr(e); }
+}
+function logout(){ ask('로그아웃할까요? 이 기기의 내용은 그대로 남아요.', '로그아웃', ()=>{ firebase.auth().signOut(); toast('로그아웃했어요'); }); }
+function authErr(e){
+  const c = (e && e.code) || '';
+  if(c==='auth/popup-closed-by-user' || c==='auth/cancelled-popup-request') return;
+  const M = {'auth/invalid-credential':'이메일이나 비밀번호가 틀렸어요','auth/wrong-password':'비밀번호가 틀렸어요','auth/user-not-found':'가입하지 않은 이메일이에요. 「처음이면 가입」을 눌러 주세요',
+    'auth/email-already-in-use':'이미 가입한 이메일이에요. 「로그인」을 눌러 주세요','auth/weak-password':'비밀번호를 6자 이상으로 해 주세요','auth/invalid-email':'이메일 모양이 맞지 않아요',
+    'auth/unauthorized-domain':'이 주소가 Firebase 「승인된 도메인」에 없어요','auth/operation-not-allowed':'Firebase에서 이 로그인 방법이 꺼져 있어요',
+    'auth/network-request-failed':'인터넷 연결을 확인해 주세요','auth/too-many-requests':'시도가 너무 많아요. 잠시 뒤에 다시 해 주세요'};
+  toast(M[c] || ('로그인하지 못했어요 · '+(c||'알 수 없는 오류')));
+}
+
 const GZ_P = P;
 loadTrips();
 goHome();
+cloudInit();
 </script>
