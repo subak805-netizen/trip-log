@@ -20,7 +20,10 @@ HEAD = """<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="광저우">
+<meta name="apple-mobile-web-app-title" content="TRIP.LOG">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="favicon-32.png">
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#EFE8D4">
 </head>
 <body>
@@ -28,6 +31,11 @@ HEAD = """<!doctype html>
 page = HEAD + (here/'index.html').read_text() + "\n</body>\n</html>\n"
 docs = here/'docs'; docs.mkdir(exist_ok=True)
 (docs/'index.html').write_text(page); (docs/'.nojekyll').write_text('')
+# 앱 아이콘 (icons/make_icon.py final) + 홈 화면 앱 정보
+import subprocess, shutil
+subprocess.run(['python3', str(here/'icons'/'make_icon.py'), str(docs), 'final'], check=True, capture_output=True)
+(docs/'manifest.json').write_text(json.dumps({'name':'TRIP.LOG','short_name':'TRIP.LOG','start_url':'./','display':'standalone','background_color':'#EFE8D4','theme_color':'#EFE8D4',
+  'icons':[{'src':'icon-192.png','sizes':'192x192','type':'image/png'},{'src':'icon-512.png','sizes':'512x512','type':'image/png'}]}, ensure_ascii=False))
 pv = pathlib.Path('/tmp/triplog-preview'); pv.mkdir(parents=True, exist_ok=True)
 (pv/'index.html').write_text(page)
 print('docs/index.html', (docs/'index.html').stat().st_size, 'bytes')
