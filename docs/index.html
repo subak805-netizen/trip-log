@@ -1548,7 +1548,7 @@ function renderTop(){
     $('#topEn').textContent = 'MY TRAVEL QUEST'; $('#topTitle').textContent = 'TRIP.LOG'; document.title = 'TRIP.LOG';
     $('#topSub').innerHTML = '여행 '+TRIPS.length+'개'; return;
   }
-  $('#topEn').textContent = (TRIP.en || 'MY').toUpperCase()+' QUEST'; $('#topTitle').textContent = TRIP.name; document.title = 'TRIP.LOG '+TRIP.name;
+  $('#topEn').textContent = (TRIP.en || 'MY').toUpperCase()+' QUEST'; $('#topTitle').textContent = TRIP.name; document.title = 'TRIP.LOG';   // 앱 이름은 여행과 상관없이 늘 TRIP.LOG
   const n = S.days.length, hn = place('hotel').ko;
   let s = (n>1?(n-1)+'박 ':'')+n+'일'+(TRIP.people?' · '+TRIP.people+'명':'')+(isGZ()?' · 메리어트 바이윈':(hn&&hn!=='숙소'?' · '+esc(hn):''));
   const d0 = dayDate(0);
