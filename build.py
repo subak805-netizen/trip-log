@@ -28,7 +28,10 @@ HEAD = """<!doctype html>
 </head>
 <body>
 """
-page = HEAD + (here/'index.html').read_text() + "\n</body>\n</html>\n"
+body = (here/'index.html').read_text()
+import re as _re
+body = _re.sub(r'<title>[^<]*</title>\s*', '', body, count=1)   # 제목은 머리말에
+page = HEAD.replace('</head>', '<title>TRIP.LOG</title>\n</head>') + body + "\n</body>\n</html>\n"
 docs = here/'docs'; docs.mkdir(exist_ok=True)
 (docs/'index.html').write_text(page); (docs/'.nojekyll').write_text('')
 # 앱 아이콘 (icons/make_icon.py final) + 홈 화면 앱 정보
