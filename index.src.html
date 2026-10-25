@@ -118,6 +118,10 @@ const PY = {
   '广州正佳广场万豪酒店':'Guǎngzhōu Zhèngjiā Guǎngchǎng Wànháo Jiǔdiàn','广州白云国际机场':'Guǎngzhōu Báiyún Guójì Jīchǎng',
   '广州白云越秀万豪酒店':'Guǎngzhōu Báiyún Yuèxiù Wànháo Jiǔdiàn','白云区 云城中二路6号':'Báiyún Qū Yúnchéng Zhōng Èr Lù 6 Hào','白云越秀万豪酒店':'Báiyún Yuèxiù Wànháo Jiǔdiàn',
   '天河区 天河路228号':'Tiānhé Qū Tiānhé Lù 228 Hào','天河路228号':'Tiānhé Lù 228 Hào','冼村路2号 首府大厦 5层':'Xiǎncūn Lù 2 Hào Shǒufǔ Dàshà 5 Céng',
+  '入续 RUXU':'Rùxù','入续 鸳鸯糖水铺':'Rùxù Yuānyāng Tángshuǐpù','草莓牛奶雪冰':'Cǎoméi Niúnǎi Xuěbīng','焦糖蛋挞':'Jiāotáng Dàntà','金骏眉乳':'Jīnjùnméi Rǔ',
+  '五白娟姗奶红豆栗子包':'Wǔbái Juānshān Nǎi Hóngdòu Lìzi Bāo','梦龙脆榛子可可流心软包':'Mènglóng Cuì Zhēnzi Kěkě Liúxīn Ruǎnbāo','生牛乳黄油海盐卷':'Shēng Niúrǔ Huángyóu Hǎiyán Juǎn','糖莎翁海盐卷':'Táng Shāwēng Hǎiyán Juǎn',
+  '遇见小面':'Yùjiàn Xiǎomiàn','遇见小面 白云机场':'Yùjiàn Xiǎomiàn Báiyún Jīchǎng','川味酸菜牛肉面':'Chuānwèi Suāncài Niúròu Miàn','销魂擂椒卤肉面':'Xiāohún Léijiāo Lǔròu Miàn','老麻抄手':'Lǎo Má Chāoshǒu',
+  '野人先生':'Yěrén Xiānshēng','野人先生 正佳广场':'Yěrén Xiānshēng Zhèngjiā Guǎngchǎng','五常大米冰淇淋':'Wǔcháng Dàmǐ Bīngqílín','遇见小面 289艺术园':'Yùjiàn Xiǎomiàn 289 Yìshùyuán','开心果冰淇淋':'Kāixīnguǒ Bīngqílín',
   '宏图府':'Hóngtú Fǔ','白天鹅宾馆 宏图府':'Báitiān\'é Bīnguǎn Hóngtú Fǔ','羊城鲜虾饺':'Yángchéng Xiānxiā Jiǎo','天鹅酥':'Tiān\'é Sū',
   '万菱汇':'Wànlíng Huì','花城汇':'Huāchéng Huì','高德置地广场':'Gāodé Zhìdì Guǎngchǎng','天汇广场 IGC':'Tiānhuì Guǎngchǎng','北京路步行街':'Běijīng Lù Bùxíngjiē',
   '四色虾饺':'Sìsè Xiājiǎo','鲜虾干蒸烧卖':'Xiānxiā Gānzhēng Shāomài','韭黄鲜虾肠粉':'Jiǔhuáng Xiānxiā Chángfěn','凤尾香芋角':'Fèngwěi Xiāngyù Jiǎo','白玉藏珍':'Báiyù Cángzhēn',
@@ -166,6 +170,24 @@ let P = [
   {id:'hongtufu',cat:'food',area:'liwan',ko:'홍투푸 (화이트스완 호텔)',zh:'宏图府',gaode:'白天鹅宾馆 宏图府',tags:[],price:[150,250],
    note:'화이트스완 호텔(白天鹅宾馆) 2층 딤섬집. 08:00~14:30 · 강 전망 · 투숙객 우선 예약. 미슐랭 1스타였던 곳(2026 여부는 확인 필요). 가격 대략',
    menu:[['羊城鲜虾饺','새우 하가우 (대표)'],['天鹅酥','백조 모양 페이스트리 (전복·차슈 소)']]},
+  {id:'yujian',cat:'food',area:'zhujiang',ko:'위젠샤오몐 (충칭 국수)',zh:'遇见小面',gaode:'遇见小面 289艺术园',tags:[],price:[27,35],
+   note:'광저우가 본사인 충칭식 국수 체인(1호점 2014년 体育东横街). 시내 매장이 많아요. 바이윈 공항점에서 먹어 봄(꼬치·콜라도 같이)',
+   menu:[['川味酸菜牛肉面','쓰촨식 갓절임 소고기 국수 · 먹어 봄','','k','Sichuan Pickled Mustard Beef Noodles',35],
+     ['销魂擂椒卤肉面','으깬 고추 조림고기 비빔면 (오전 10시 이후)','','','Pounded Chili Braised Pork Noodles',27],
+     ['老麻抄手','얼얼한 고추기름 완탕 · 마라 얼얼함 호불호','','x','Spicy Sichuan Wontons',28]]},
+  {id:'ruxu',cat:'dessert',area:'tianhe',ko:'루쉬 (원앙 디저트 카페)',zh:'入续 RUXU',gaode:'入续 鸳鸯糖水铺',tags:['추천'],price:[30,60],
+   note:'원앙(鸳鸯) 무늬가 상징인 디저트·베이커리 카페. 빙수(雪冰)·에그타르트·밀크티·빵. 광저우에 万菱汇 B1·正佳广场·北京路 등 여러 지점 (사진의 지점은 확인 필요). 가격 대략',
+   menu:[['草莓牛奶雪冰','딸기 우유 빙수 · 생크림·코코넛 · 먹어 봄 (메뉴판 이름은 확인 필요)','','k','Strawberry Milk Shaved Ice'],
+     ['焦糖蛋挞','캐러멜 에그타르트 · 먹어 봄','','k','Caramel Egg Tart'],
+     ['金骏眉乳','진쥔메이 홍차 우유 · 먹어 봄','','k','Jin Jun Mei Black Tea Milk'],
+     ['五白娟姗奶红豆栗子包','저지 우유 팥·밤 빵 (건강 「오백」 시리즈)','','k','Jersey Milk Red Bean & Chestnut Bun',15],
+     ['梦龙脆榛子可可流心软包','바삭 헤이즐넛 초코 크림 빵','','k','Crunchy Hazelnut Cocoa Lava Bun',18],
+     ['生牛乳黄油海盐卷','생우유 버터 소금빵 (3개 ¥22)','','k','Fresh Milk Butter Sea Salt Roll',9],
+     ['糖莎翁海盐卷','설탕 코팅 소금빵','','','Sugar-crust Sea Salt Roll',10]]},
+  {id:'yegz',cat:'dessert',area:'tianhe',ko:'예런셴성 젤라또 (野人先生)',zh:'野人先生',gaode:'野人先生 正佳广场',tags:['추천'],price:[30,40],
+   note:'그날 만든 젤라또만 파는 체인(「当天现做 拒绝隔夜」). 컵의 「野在广州」는 광저우 한정 디자인. 시내는 그랜드뷰 몰 매장이 인기. 바이윈 공항점에서 먹어 봄. 한 컵 약 ¥38 (2025년 기사)',
+   menu:[['开心果冰淇淋','피스타치오 젤라또 · 한 컵에 피스타치오 약 29알 · 대표 · 먹어 봄','','kr','Pistachio Gelato'],
+     ['五常大米冰淇淋','우창 쌀 아이스크림 (「黑土地」 메뉴)','','','Wuchang Rice Gelato']]},
   {id:'imperial',cat:'food',area:'etc',ko:'임페리얼 트레저',zh:'御宝轩',tags:[],mich:'2스타',price:[500,800],note:'위치는 고덕에서 확인'},
   {id:'jiang',cat:'food',area:'tianhe',ko:'장 바이 셰프 페이',zh:'江',gaode:'江 文华东方',tags:[],mich:'2스타',price:[800,1500],
    note:'太古汇 옆 만다린 오리엔탈 호텔 안(확인 필요)'},
@@ -230,6 +252,9 @@ let P = [
 
 /* 지점·주소 (체인은 가까운 지점). 확인 안 된 건 그렇게 적어 둠 */
 const BR = {
+  ruxu:['여러 지점 (간 곳 확인 필요)','万菱汇 B1 · 正佳广场 · 北京路'],
+  yegz:['正佳广场店 (시내) · 공항점에서 먹어 봄','天河路228号 正佳广场'],
+  yujian:['289创意店 (시내) · 공항점에서 먹어 봄','广州大道中289号 289艺术园 1层115号'],
   hongtufu:['白天鹅宾馆 2층','荔湾区 沙面南街1号 白天鹅宾馆2楼'],
   taotaoju:['正佳广场店','天河路228号 正佳广场'], feidachu:['正佳广场店','天河路228号 正佳广场'],
   bingsheng:['단독 매장 · 珠江新城',''], yuanji:['체인 · 가까운 지점','숙소 근처(白云文化广场)나 正佳 근처에서 고덕 검색'],
@@ -253,7 +278,7 @@ Object.keys(BR).forEach(id=>{ const p = P.find(x=>x.id===id); if(p){ if(BR[id][0
 
 
 /* 영어 이름 (메뉴판·간판 대조용) */
-const EN = {hotel:'Guangzhou Marriott Hotel Baiyun',airport:'Baiyun International Airport',
+const EN = {ruxu:'RUXU',yujian:'Xiao Noodles',yegz:'Ye Gelato',hotel:'Guangzhou Marriott Hotel Baiyun',airport:'Baiyun International Airport',
   taotaoju:'Tao Tao Ju',feidachu:'Fei Da Chu',bingsheng:'Bingsheng Mansion',hongtufu:'Hongtu Hall · White Swan Hotel',yuanji:'Yuan Ji Wonton',yinji:'Yin Ji Rice Roll',
   imperial:'Imperial Treasure Fine Chinese Cuisine',jiang:'Jiang by Chef Fei',taian:'Taian Table',laiheen:'Lai Heen',lingnan:'Lingnan House',yuyue:'Yu Yue Heen',xinji:'Xin Ji',
   heytea:'HEYTEA',chagee:'CHAGEE',ama:'Ah Ma Handmade',nanxin:'Nanxin Dessert',
@@ -264,7 +289,7 @@ const EN = {hotel:'Guangzhou Marriott Hotel Baiyun',airport:'Baiyun Internationa
   julong:'Julong Bay Taikoo Li',ifc:'Guangzhou IFC Mall',xicheng:'Xicheng Duhui Mall',liwanplaza:'Liwan Plaza',
   ole:"Ole' Supermarket",hema:'Freshippo (Hema)'};
 /* 어디 안에 있는지 한 줄 */
-const LOC = {taotaoju:'正佳广场 몰 안 (옛 자료 6층)',feidachu:'正佳广场 몰 안',bingsheng:'首府大厦 빌딩 5층 (주장신청)',hongtufu:'화이트스완 호텔 2층 (사몐)',
+const LOC = {ruxu:'万菱汇 몰 지하 1층 등 몰 안',yujian:'289 예술단지 1층 (주장신청 근처)',yegz:'正佳广场 몰 안 (층 확인 필요)',taotaoju:'正佳广场 몰 안 (옛 자료 6층)',feidachu:'正佳广场 몰 안',bingsheng:'首府大厦 빌딩 5층 (주장신청)',hongtufu:'화이트스완 호텔 2층 (사몐)',
   yuanji:'길가 작은 가게 · 체인',yinji:'上下九 보행가 근처 노포',imperial:'위치 확인 필요',taian:'위치 확인 필요',lingnan:'위치 확인 필요',xinji:'위치 확인 필요',
   jiang:'만다린 오리엔탈 호텔 안 (太古汇 옆)',laiheen:'리츠칼튼 호텔 안 (주장신청)',yuyue:'화원 호텔(花园酒店) 안',
   heytea:'몰마다 있음 · 正佳·天环·太古汇 몰 안',chagee:'몰마다 있음 · 正佳·天环·太古汇 몰 안',ama:'太古汇 몰 안',laihui:'六运小区 골목',jpg:'六运小区 골목',nanxin:'上下九 근처 길가 노포',
@@ -349,6 +374,8 @@ const MALL_SPOTS = {
     {zh:'正佳极地海洋世界',ko:'아쿠아리움',en:'Grandview Aquarium',k:'sight',fl:'2층 입구',tip:'인어 공연·해파리 터널',link:'aquarium'},
     {zh:'雨林生态植物园',ko:'열대우림 식물원',en:'Rainforest Garden',k:'sight',fl:'',tip:'하늘 산책로·다육식물'},
     {zh:'冰河湾真冰场',ko:'아이스링크',en:'Ice Rink',k:'sight',fl:'5층',tip:''},
+    {zh:'入续 RUXU',ko:'루쉬 (원앙 디저트 카페)',en:'RUXU',k:'sweet',fl:'',tip:'正佳에도 지점이 있다는 기사 (층 확인)',link:'ruxu'},
+    {zh:'野人先生',ko:'예런셴성 젤라또',en:'Ye Gelato',k:'sweet',fl:'',tip:'피스타치오 젤라또 · 가본 곳(공항점) · 층 확인',link:'yegz'},
     {zh:'MINISO LAND',ko:'미니소 랜드',en:'MINISO LAND',k:'wear',fl:'',tip:'2개 층 대형 매장',link:'miniso'}]},
   taikoo:{src:'태고휘 공식 안내·점평 기준',list:[
     {zh:'金牌陶陶居',ko:'타오타오쥐 (태고휘점)',en:'Tao Tao Ju',k:'food',fl:'B2 · M52',tip:'지하철 입구 근처 · 새우 하가우 · 점심 줄 김'},
@@ -373,6 +400,8 @@ const MALL_SPOTS = {
     {zh:'Wagas',ko:'와가스',en:'Wagas',k:'cafe',fl:'',tip:'브런치·샐러드'},
     {zh:'Brunello Cucinelli · BALMAIN · TOD\'S · Christian Louboutin · Yohji Yamamoto',ko:'2026년 8월 광저우 첫 매장 5곳',en:'Luxury debuts',k:'wear',fl:'',tip:'명품'},
     {zh:'K11 艺术展',ko:'아트 전시',en:'Art exhibitions',k:'sight',fl:'',tip:'시기별 전시 · 확인'}]},
+  wanling:{src:'기사 기준',list:[
+    {zh:'入续 RUXU',ko:'루쉬 (원앙 디저트 카페)',en:'RUXU',k:'sweet',fl:'B1',tip:'딸기 우유 빙수·캐러멜 에그타르트·홍차 우유 · 가본 곳',link:'ruxu'}]},
   teemall:{src:'2025년 10월 새 단장 기사·네이버 블로그 후기',list:[
     {zh:'银记肠粉 (天河城店)',ko:'인지 창펀 (톈허청점)',en:'Yin Ji Rice Roll',k:'food',fl:'B1',tip:'새우 창펀(鲜虾肠粉) · 1인 약 ¥20'},
     {zh:'黑手制面',ko:'헤이서우 국수',en:'Heishou Noodles',k:'food',fl:'B1',tip:'면 요리'},
@@ -393,7 +422,7 @@ const MALL_SPOTS = {
   gaodeland:{src:'점평 기준',list:[
     {zh:'点都德 (汇点楼店)',ko:'뎬더우더 (후이뎬러우점)',en:'Dian Dou De',k:'food',fl:'高德汇 2동 4층',tip:'새우 하가우·창펀 · 猎德역 근처'}]}
 };
-const IN_MALL = {taotaoju:'grandview',feidachu:'grandview',aquarium:'grandview',miniso:'grandview',ama:'taikoo',ole:'taikoo'};
+const IN_MALL = {ruxu:'wanling',yegz:'grandview',taotaoju:'grandview',feidachu:'grandview',aquarium:'grandview',miniso:'grandview',ama:'taikoo',ole:'taikoo'};
 const MSHORT = {grandview:'그랜드뷰',parc:'파크센트럴',teemall:'티몰',taikoo:'타이쿠후이',k11:'K11',wanling:'완링후이',huachenghui:'화청후이',julong:'쥐룽완',
   beijinglu:'베이징루',gaodeland:'가오더',ifc:'IFC',igc:'IGC',xicheng:'시청두후이',liwanplaza:'리완광장'};
 function spotsOf(id){ return ((MALL_SPOTS[id]||{}).list||[]).concat((S.spots||{})[id]||[]); }
@@ -495,7 +524,7 @@ function seed(){
         it('13:00','hotel',{memo:'짐 찾기'})
       ]}
     ],
-    custom:[], fav:{}, visited:{hongtufu:true}, _m1:1, rate:190, day:0
+    custom:[], fav:{}, visited:{hongtufu:true, yujian:true, yegz:true, ruxu:true}, _m1:1, _m2:1, _m3:1, rate:190, day:0
   };
 }
 /* ───────── 여러 여행 ─────────
@@ -528,6 +557,8 @@ function loadS(){
   if(!S.notes) S.notes = {};
   if(!S.spots) S.spots = {};
   if(isGZ() && !S._m1){ S.visited.hongtufu = true; S._m1 = 1; save(); }
+  if(isGZ() && !S._m3){ S.visited.ruxu = true; S._m3 = 1; save(); }
+  if(isGZ() && !S._m2){ S.visited.yujian = true; S.visited.yegz = true; S._m2 = 1; save(); }   // 10-25 실제로 다녀온 곳
 }
 function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(S)) }catch(e){}
@@ -662,7 +693,7 @@ const ART = {
   bed:['............','K...........','K.WWW.......','KKWWWKKKKKKK','KLLLLLLLLLLK','KKKKKKKKKKKK','K..........K'],
   plane:['.....KK.....','.....KK.....','....KSSK....','KKKKSSSSKKKK','.KKSSSSSSKK.','.....SS.....','....KSSK....','....KKKK....']
 };
-const PLACE_ART = {liwanplaza:'shop',beijinglu:'shop',hongtufu:'dimsum',taotaoju:'dimsum',feidachu:'chili',bingsheng:'goose',yuanji:'bowl',yinji:'roll',heytea:'tea',chagee:'tea',ama:'ice',laihui:'coffee',jpg:'coffee',nanxin:'pudding',
+const PLACE_ART = {ruxu:'ice',yujian:'bowl',yegz:'ice',liwanplaza:'shop',beijinglu:'shop',hongtufu:'dimsum',taotaoju:'dimsum',feidachu:'chili',bingsheng:'goose',yuanji:'bowl',yinji:'roll',heytea:'tea',chagee:'tea',ama:'ice',laihui:'coffee',jpg:'coffee',nanxin:'pudding',
   shamian:'house',yongqing:'gate',sxj:'gate',chenjiaci:'gate',tower:'tower',huacheng:'tower',cruise:'boat',aquarium:'fish',massage:'foot',miniso:'shop',hotel:'bed',airport:'plane',ole:'cart',hema:'cart'};
 const CAT_ART = {food:'bowl',cafe:'coffee',dessert:'pudding',sight:'house',fun:'boat',mall:'bag',vintage:'shirt',mart:'cart',base:'bed'};
 /* 내 사진은 IndexedDB에 (localStorage는 같은 주소의 다른 앱들과 5MB를 나눠 써서 쓰지 않음) */
@@ -792,7 +823,7 @@ const LL = {
   bingsheng:[113.3362,23.1262], k11:[113.3275,23.1188], huacheng:[113.3250,23.1170], laiheen:[113.3302,23.1176], tower:[113.3245,23.1065], cruise:[113.3215,23.1128],
   dongshankou:[113.2962,23.1238], badmarket:[113.2952,23.1248], labelhood:[113.2978,23.1228], wassup:[113.2946,23.1230], side:[113.2970,23.1252], monmon:[113.2984,23.1242],
   yuyue:[113.2850,23.1430],
-  wanling:[113.3302,23.1334], huachenghui:[113.3248,23.1182], gaodeland:[113.3262,23.1212], igc:[113.3335,23.1190], beijinglu:[113.2690,23.1255],
+  yujian:[113.3168,23.1232], yegz:[113.3275,23.1335], ruxu:[113.3302,23.1334], wanling:[113.3302,23.1334], huachenghui:[113.3248,23.1182], gaodeland:[113.3262,23.1212], igc:[113.3335,23.1190], beijinglu:[113.2690,23.1255],
   julong:[113.2372,23.1168], ifc:[113.3222,23.1208], xicheng:[113.2458,23.1152], liwanplaza:[113.2538,23.1207],
   shamian:[113.2445,23.1082], hongtufu:[113.2438,23.1068], yongqing:[113.2440,23.1215], sxj:[113.2512,23.1190], yinji:[113.2497,23.1196], nanxin:[113.2527,23.1197], chenjiaci:[113.2530,23.1265]
 };
